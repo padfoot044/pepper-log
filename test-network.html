@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PepperLog Browser Network Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #d32f2f; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        .error { background: #ffebee; color: #d32f2f; }
+        .info { background: #e3f2fd; color: #1565c0; }
+        button { background: #1976d2; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; margin: 10px 5px 10px 0; }
+        button:hover { background: #1565c0; }
+        .code { background: #f5f5f5; padding: 15px; border-radius: 4px; font-family: 'Courier New', monospace; margin: 10px 0; }
+        .network-check { background: #fff3e0; color: #f57c00; padding: 15px; border-radius: 4px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌶️ PepperLog Browser Network Test</h1>
+        
+        <div class="info status">
+            <strong>Purpose:</strong> Test that PepperLog sends actual HTTP requests to OTLP endpoints in browser
+        </div>
+
+        <div class="network-check">
+            <strong>📊 Network Monitoring:</strong><br>
+            1. Open Browser DevTools (F12)<br>
+            2. Go to Network tab<br>
+            3. Click "Test Network Requests" button below<br>
+            4. Look for POST requests to <code>localhost:4318/v1/traces</code>
+        </div>
+
+        <h2>Test Configuration</h2>
+        <div class="code">
+serviceName: 'browser-test-app'
+backend: 'grafana'
+endpoint: 'http://localhost:4318/v1/traces'
+        </div>
+
+        <h2>Actions</h2>
+        <button onclick="testNetworkRequests()">🌐 Test Network Requests</button>
+        <button onclick="testUserActions()">👤 Test User Actions</button>
+        <button onclick="testErrors()">❌ Test Error Handling</button>
+        <button onclick="clearLogs()">🧹 Clear Logs</button>
+
+        <h2>Status & Logs</h2>
+        <div id="status"></div>
+        <div id="logs"></div>
+
+        <h2>Expected Results</h2>
+        <div class="info status">
+            <strong>✅ Success Indicators:</strong><br>
+            • Console shows "PepperLog initialized successfully"<br>
+            • Console shows "Sending X spans to OTLP endpoint"<br>
+            • Network tab shows POST requests to localhost:4318/v1/traces<br>
+            • No CORS or network errors<br><br>
+            
+            <strong>❌ Failure Indicators:</strong><br>
+            • No network requests visible in DevTools<br>
+            • Console errors about fetch/network issues<br>
+            • "No exporter configured" messages
+        </div>
+    </div>
+
+    <!-- Import the compiled PepperLog -->
+    <script type="module">
+        // Import the built browser implementation
+        import { PepperLog } from './dist/browser-real.js';
+        
+        let pepperLog = null;
+        let isInitialized = false;
+
+        // Initialize PepperLog
+        async function initializePepperLog() {
+            if (isInitialized) return pepperLog;
+
+            log('🔄 Initializing PepperLog...', 'info');
+            
+            pepperLog = new PepperLog({
+                serviceName: 'browser-test-app',
+                backend: 'grafana',
+                config: {
+                    endpoint: 'http://localhost:4318/v1/traces',
+                    batchConfig: {
+                        maxExportBatchSize: 10, // Smaller batch for faster testing
+                        exportTimeoutMillis: 3000, // Faster export for testing
+                        scheduledDelayMillis: 500,
+                    }
+                },
+                environment: 'test',
+                features: {
+                    tracing: true,
+                    metrics: true,
+                    logging: true,
+                    autoInstrumentation: true
+                },
+                globalAttributes: {
+                    'test.page': 'network-test',
+                    'test.version': '1.0.1'
+                }
+            });
+
+            try {
+                await pepperLog.initialize();
+                log('✅ PepperLog initialized successfully!', 'success');
+                
+                const framework = pepperLog.getDetectedFramework();
+                log(`🔍 Detected framework: ${framework?.name || 'unknown'} (${framework?.version || 'unknown version'})`, 'info');
+                
+                isInitialized = true;
+                return pepperLog;
+            } catch (error) {
+                log(`❌ Failed to initialize PepperLog: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        // Test network requests
+        window.testNetworkRequests = async function() {
+            try {
+                const pepper = await initializePepperLog();
+                log('🌐 Testing network requests - CHECK DEVTOOLS NETWORK TAB!', 'info');
+
+                // Create multiple spans to test batching
+                for (let i = 1; i <= 5; i++) {
+                    await pepper.traceFunction(`network-test-${i}`, async () => {
+                        log(`Executing network test ${i}...`, 'info');
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        return { testId: i, timestamp: Date.now() };
+                    }, { 
+                        'test.iteration': i,
+                        'test.type': 'network-request-test'
+                    });
+                }
+
+                log('✅ Network test spans created - check DevTools Network tab for POST requests!', 'success');
+                log('⏳ Waiting 4 seconds for batch export...', 'info');
+                
+                setTimeout(() => {
+                    log('🎯 Export should be complete - check Network tab for requests to localhost:4318/v1/traces', 'success');
+                }, 4000);
+
+            } catch (error) {
+                log(`❌ Network test failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Test user actions
+        window.testUserActions = async function() {
+            try {
+                const pepper = await initializePepperLog();
+                log('👤 Testing user action tracing...', 'info');
+
+                await pepper.traceFunction('user-button-click', async () => {
+                    log('Simulating button click...', 'info');
+                    return { action: 'button-click', buttonId: 'test-btn' };
+                }, { 'ui.component': 'button', 'ui.event': 'click' });
+
+                await pepper.traceFunction('user-form-submit', async () => {
+                    log('Simulating form submit...', 'info');
+                    return { action: 'form-submit', formId: 'test-form' };
+                }, { 'ui.component': 'form', 'ui.event': 'submit' });
+
+                log('✅ User action traces created!', 'success');
+
+            } catch (error) {
+                log(`❌ User action test failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Test error handling
+        window.testErrors = async function() {
+            try {
+                const pepper = await initializePepperLog();
+                log('❌ Testing error handling...', 'info');
+
+                try {
+                    await pepper.traceFunction('test-error-scenario', async () => {
+                        throw new Error('This is a test error for tracing');
+                    }, { 'test.error': true });
+                } catch (error) {
+                    log(`✅ Error correctly caught and traced: ${error.message}`, 'success');
+                }
+
+                pepper.error('Test error log', new Error('Test error object'), { 'error.test': true });
+                log('✅ Error logging test completed!', 'success');
+
+            } catch (error) {
+                log(`❌ Error test failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Utility functions
+        window.clearLogs = function() {
+            document.getElementById('logs').innerHTML = '';
+            document.getElementById('status').innerHTML = '<div class="info status">Logs cleared</div>';
+        };
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `status ${type}`;
+            logEntry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            document.getElementById('logs').appendChild(logEntry);
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        // Initialize on page load
+        log('📄 Page loaded - ready to test PepperLog network functionality', 'info');
+    </script>
+</body>
+</html>

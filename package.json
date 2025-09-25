@@ -1,13 +1,13 @@
 {
   "name": "@padfoot044/pepper-log",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Universal OpenTelemetry integration for JavaScript/TypeScript frameworks with auto-detection and multiple backend support. Works seamlessly in both browser and Node.js environments.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "browser": "dist/standalone-browser.js",
+  "browser": "dist/browser-real.js",
   "exports": {
     ".": {
-      "browser": "./dist/standalone-browser.js",
+      "browser": "./dist/browser-real.js",
       "node": "./dist/index.js",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
