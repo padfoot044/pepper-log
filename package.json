@@ -1,7 +1,7 @@
 {
   "name": "pepper-log",
   "version": "1.0.0",
-  "description": "Universal OpenTelemetry integration for JavaScript/TypeScript frameworks with auto-detection and multiple backend support",
+  "description": "Universal OpenTelemetry integration for JavaScript/TypeScript frameworks with auto-detection and multiple backend support. Works seamlessly in both browser and Node.js environments.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "browser": "dist/standalone-browser.js",
@@ -9,20 +9,22 @@
     ".": {
       "browser": "./dist/standalone-browser.js",
       "node": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
     }
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "prepublishOnly": "npm run build",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run clean && npm run build",
     "test": "npx ts-node test/basic-test.ts",
     "test:logging": "npx ts-node test/logging-test.ts",
     "test:integration": "npx ts-node test/integration-test.ts",
     "test:all": "npm run test && npm run test:logging && npm run test:integration",
     "demo": "npx ts-node test/logging-demo.ts",
     "test:watch": "tsc --watch",
-    "clean": "rimraf dist",
     "lint": "echo \"Linting not configured yet\"",
     "format": "echo \"Formatting not configured yet\""
   },
@@ -32,24 +34,34 @@
     "tracing",
     "metrics",
     "logging",
+    "telemetry",
+    "monitoring",
     "angular",
     "react",
     "vue",
-    "express",
     "nextjs",
+    "express",
+    "fastify",
     "signoz",
+    "grafana",
     "datadog",
-    "monitoring"
+    "jaeger",
+    "browser",
+    "nodejs",
+    "typescript",
+    "javascript",
+    "instrumentation",
+    "apm"
   ],
-  "author": "",
+  "author": "padfoot044",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/pepper-log.git"
+    "url": "git+https://github.com/padfoot044/pepper-log.git"
   },
-  "homepage": "https://github.com/yourusername/pepper-log#readme",
+  "homepage": "https://github.com/padfoot044/pepper-log#readme",
   "bugs": {
-    "url": "https://github.com/yourusername/pepper-log/issues"
+    "url": "https://github.com/padfoot044/pepper-log/issues"
   },
   "files": [
     "dist/**/*",

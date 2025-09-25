@@ -1,23 +1,103 @@
 # 🌶️ PepperLog
 
-**Universal OpenTelemetry integration for JavaScript/TypeScript frameworks with auto-detection and multiple backend support**
+Universal OpenTelemetry integration for JavaScript/TypeScript frameworks with auto-detection and multiple backend support. Works seamlessly in both browser and Node.js environments.
 
 [![npm version](https://badge.fury.io/js/pepper-log.svg)](https://badge.fury.io/js/pepper-log)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-PepperLog makes it incredibly easy to add observability to your JavaScript/TypeScript applications. With zero configuration, it auto-detects your framework and sets up OpenTelemetry tracing, metrics, and logging.
-
 ## ✨ Features
 
-- 🚀 **Zero Configuration**: Auto-detects your framework and sets up everything
-- 🎯 **Multi-Framework Support**: React, Angular, Vue, Express, Next.js, and more
-- 🔌 **Multiple Backends**: SigNoz, Datadog, Jaeger, New Relic, Grafana, and others
-- 📊 **Full Observability**: Tracing, metrics, and structured logging
-- 🛠️ **TypeScript First**: Built with TypeScript, works great with JavaScript too
-- 🔍 **Auto-Instrumentation**: Automatic instrumentation for HTTP, databases, and more
-- 🎨 **Framework-Specific**: Tailored instrumentation for each framework
+- 🚀 **Universal Compatibility**: Works in both browser and Node.js environments
+- 🎯 **Auto-Detection**: Automatically detects frameworks (Angular, React, Vue, Next.js, Express, etc.)
+- 🔌 **Multiple Backends**: SigNoz, Grafana, Datadog, Jaeger, New Relic, and more
+- 🌐 **Zero Browser Conflicts**: Standalone browser version with no Node.js dependencies
+- � **Complete Telemetry**: Tracing, metrics, and logging in one package
+- �️ **Error-Safe**: Graceful degradation - your app continues even if telemetry fails
+- 📝 **TypeScript Support**: Full TypeScript definitions included
 
 ## 🚀 Quick Start
+
+### Installation
+
+```bash
+npm install pepper-log
+```
+
+### Basic Usage
+
+```typescript
+import { PepperLog } from 'pepper-log';
+
+const telemetry = new PepperLog({
+  serviceName: 'my-awesome-app',
+  backend: 'grafana', // or 'signoz', 'datadog', etc.
+  config: {
+    endpoint: 'http://localhost:4318/v1/traces'
+  }
+});
+
+await telemetry.initialize();
+
+// Trace a function
+await telemetry.traceFunction('user-action', async () => {
+  console.log('Doing some work...');
+  return 'success';
+});
+```
+
+## 🎯 Framework Integration
+
+### Angular
+
+```typescript
+import { Injectable } from '@angular/core';
+import { PepperLog } from 'pepper-log';
+
+@Injectable({ providedIn: 'root' })
+export class TelemetryService {
+  private pepperLog = new PepperLog({
+    serviceName: 'angular-app',
+    backend: 'grafana'
+  });
+
+  async initialize() {
+    await this.pepperLog.initialize();
+  }
+
+  async traceUserAction(action: string, data?: any) {
+    return this.pepperLog.traceFunction(`user-${action}`, async () => {
+      // Your business logic
+      return { action, data, timestamp: Date.now() };
+    });
+  }
+}
+```
+
+### React
+
+```typescript
+import React, { useEffect } from 'react';
+import { PepperLog } from 'pepper-log';
+
+const telemetry = new PepperLog({
+  serviceName: 'react-app',
+  backend: 'signoz'
+});
+
+function App() {
+  useEffect(() => {
+    telemetry.initialize();
+  }, []);
+
+  const handleClick = async () => {
+    await telemetry.traceFunction('button-click', async () => {
+      console.log('Button clicked!');
+    });
+  };
+
+  return <button onClick={handleClick}>Click me</button>;
+}
+```
 
 ### Installation
 

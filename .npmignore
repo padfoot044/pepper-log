@@ -1,0 +1,47 @@
+# Source files
+src/
+tsconfig.json
+*.tsbuildinfo
+
+# Development files  
+test/
+docs/
+scripts/
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Version control
+.git/
+.gitignore
+
+# CI/CD
+.github/
+.travis.yml
+.circleci/
+
+# Local development
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+.nyc_output
+
+# Build artifacts (keep dist/)
+# dist/ is needed for the package
+
+# Testing
+coverage/
+.jest/
+
+# Temporary files
+tmp/
+temp/
