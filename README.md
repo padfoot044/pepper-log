@@ -2,7 +2,7 @@
 
 Universal OpenTelemetry integration for JavaScript/TypeScript frameworks with auto-detection and multiple backend support. Works seamlessly in both browser and Node.js environments.
 
-[![npm version](https://badge.fury.io/js/pepper-log.svg)](https://badge.fury.io/js/pepper-log)
+[![npm version](https://badge.fury.io/js/@padfoot044%2Fpepper-log.svg)](https://badge.fury.io/js/@padfoot044%2Fpepper-log)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## ✨ Features
@@ -20,13 +20,13 @@ Universal OpenTelemetry integration for JavaScript/TypeScript frameworks with au
 ### Installation
 
 ```bash
-npm install pepper-log
+npm install @padfoot044/pepper-log
 ```
 
 ### Basic Usage
 
 ```typescript
-import { PepperLog } from 'pepper-log';
+import { PepperLog } from '@padfoot044/pepper-log';
 
 const telemetry = new PepperLog({
   serviceName: 'my-awesome-app',
@@ -51,7 +51,7 @@ await telemetry.traceFunction('user-action', async () => {
 
 ```typescript
 import { Injectable } from '@angular/core';
-import { PepperLog } from 'pepper-log';
+import { PepperLog } from '@padfoot044/pepper-log';
 
 @Injectable({ providedIn: 'root' })
 export class TelemetryService {
@@ -77,7 +77,7 @@ export class TelemetryService {
 
 ```typescript
 import React, { useEffect } from 'react';
-import { PepperLog } from 'pepper-log';
+import { PepperLog } from '@padfoot044/pepper-log';
 
 const telemetry = new PepperLog({
   serviceName: 'react-app',
@@ -102,7 +102,7 @@ function App() {
 ### Installation
 
 ```bash
-npm install pepper-log
+npm install @padfoot044/pepper-log
 # or
 yarn add pepper-log
 # or
@@ -112,7 +112,7 @@ pnpm add pepper-log
 ### Basic Usage
 
 ```typescript
-import { PepperLog } from 'pepper-log';
+import { PepperLog } from '@padfoot044/pepper-log';
 
 // Initialize with minimal configuration
 const logger = new PepperLog({
@@ -140,7 +140,7 @@ PEPPER_LOG_ENDPOINT=http://localhost:4318/v1/traces
 ```
 
 ```typescript
-import { PepperLog } from 'pepper-log';
+import { PepperLog } from '@padfoot044/pepper-log';
 
 // Uses environment variables
 const logger = new PepperLog({

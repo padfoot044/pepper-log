@@ -29,7 +29,7 @@ echo.
 echo 📋 Step 3: Ready to publish!
 echo.
 echo The following will be published to npm:
-echo - Package name: pepper-log
+echo - Package name: @padfoot044/pepper-log
 echo - Version: 1.0.0
 echo - Repository: https://github.com/padfoot044/pepper-log
 echo.
@@ -42,7 +42,7 @@ if /i not "%confirm%"=="y" (
 
 echo.
 echo 📋 Step 4: Publishing to npm...
-call npm publish
+call npm publish --access public
 if %ERRORLEVEL% neq 0 (
     echo ❌ Publishing failed! Please check your npm credentials.
     echo Run 'npm login' if you haven't logged in yet.
@@ -56,8 +56,8 @@ echo  🎉 Successfully published to npm!
 echo ========================================
 echo.
 echo Your package is now available:
-echo - Install with: npm install pepper-log
-echo - View on npm: https://www.npmjs.com/package/pepper-log
+echo - Install with: npm install @padfoot044/pepper-log
+echo - View on npm: https://www.npmjs.com/package/@padfoot044/pepper-log
 echo.
 echo 📋 Next steps:
 echo 1. Test installation: npm install pepper-log
