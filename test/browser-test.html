@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PepperLog Browser Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #d63384; }
+        button {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #0b5ed7; }
+        .success { color: #198754; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .console {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌶️ PepperLog Browser Test</h1>
+        
+        <div id="status">
+            <p><strong>Status:</strong> <span id="statusText">Loading...</span></p>
+            <p><strong>Version:</strong> Browser-only (No Node.js dependencies)</p>
+        </div>
+
+        <div>
+            <h2>🧪 Test Actions</h2>
+            <button onclick="testSpan()">🎯 Test Span</button>
+            <button onclick="testFunction()">⚡ Test Function</button>
+            <button onclick="testMetrics()">📊 Test Metrics</button>
+            <button onclick="testError()">🚨 Test Error</button>
+            <button onclick="clearConsole()">🗑️ Clear Console</button>
+        </div>
+
+        <div>
+            <h2>🔍 Console Output</h2>
+            <div id="console" class="console"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // This would normally be imported from pepper-log
+        // For this test, we'll simulate the browser version
+        
+        class MockPepperLog {
+            constructor(config) {
+                this.config = config;
+                this.initialized = false;
+                this.log('🌶️ PepperLog: Creating browser-only instance');
+            }
+
+            async initialize() {
+                this.log('🌶️ PepperLog: Initializing simple telemetry for browser');
+                this.initialized = true;
+                this.log('✅ PepperLog: Browser telemetry initialized!');
+            }
+
+            createSpan(name, attributes = {}) {
+                const spanInfo = {
+                    name,
+                    startTime: Date.now(),
+                    attributes: { ...this.config.globalAttributes, ...attributes }
+                };
+                
+                this.log(`🌶️ PepperLog Span Started: ${JSON.stringify(spanInfo)}`);
+
+                return {
+                    setAttributes: (attrs) => {
+                        Object.assign(spanInfo.attributes, attrs);
+                        this.log('🌶️ PepperLog Span Attributes Updated');
+                    },
+                    end: () => {
+                        const duration = Date.now() - spanInfo.startTime;
+                        this.log(`🌶️ PepperLog Span Ended: ${name} (${duration}ms)`);
+                    }
+                };
+            }
+
+            async traceFunction(name, fn, attributes = {}) {
+                const span = this.createSpan(name, attributes);
+                try {
+                    this.log(`🌶️ PepperLog: Executing traced function: ${name}`);
+                    const result = await fn();
+                    this.log(`✅ PepperLog: Function completed: ${name}`);
+                    return result;
+                } catch (error) {
+                    this.log(`❌ PepperLog: Function failed: ${name} - ${error.message}`);
+                    throw error;
+                } finally {
+                    span.end();
+                }
+            }
+
+            createCounter(name, description) {
+                this.log(`📊 PepperLog Counter Created: ${name}`);
+                return {
+                    add: (value, attributes = {}) => {
+                        this.log(`📊 PepperLog Counter [${name}] += ${value}`);
+                    }
+                };
+            }
+
+            log(message) {
+                console.log(message);
+                const consoleEl = document.getElementById('console');
+                const time = new Date().toLocaleTimeString();
+                consoleEl.innerHTML += `[${time}] ${message}\n`;
+                consoleEl.scrollTop = consoleEl.scrollHeight;
+            }
+        }
+
+        // Initialize PepperLog
+        const pepperLog = new MockPepperLog({
+            serviceName: 'browser-test',
+            backend: 'grafana',
+            globalAttributes: {
+                'app.framework': 'vanilla-js',
+                'test.type': 'browser'
+            }
+        });
+
+        window.pepperLog = pepperLog;
+
+        // Initialize and update status
+        try {
+            await pepperLog.initialize();
+            document.getElementById('statusText').innerHTML = '<span class="success">✅ Initialized</span>';
+        } catch (error) {
+            document.getElementById('statusText').innerHTML = `<span class="error">❌ Failed: ${error.message}</span>`;
+        }
+
+        // Test functions
+        window.testSpan = () => {
+            const span = pepperLog.createSpan('user.test.span', {
+                'action': 'button_click',
+                'timestamp': Date.now()
+            });
+            
+            setTimeout(() => span.end(), 1000);
+        };
+
+        window.testFunction = async () => {
+            await pepperLog.traceFunction('user.test.function', async () => {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                return 'Function completed successfully!';
+            }, {
+                'test.type': 'async_function'
+            });
+        };
+
+        window.testMetrics = () => {
+            const counter = pepperLog.createCounter('test.button.clicks');
+            counter.add(1, { 'button': 'test_metrics' });
+            
+            pepperLog.log('📈 Metrics test completed');
+        };
+
+        window.testError = async () => {
+            try {
+                await pepperLog.traceFunction('user.test.error', () => {
+                    throw new Error('This is a test error');
+                });
+            } catch (error) {
+                pepperLog.log('✅ Error handling test completed');
+            }
+        };
+
+        window.clearConsole = () => {
+            document.getElementById('console').innerHTML = '';
+        };
+    </script>
+</body>
+</html>

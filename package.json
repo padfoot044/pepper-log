@@ -1,0 +1,81 @@
+{
+  "name": "pepper-log",
+  "version": "1.0.0",
+  "description": "Universal OpenTelemetry integration for JavaScript/TypeScript frameworks with auto-detection and multiple backend support",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "browser": "dist/standalone-browser.js",
+  "exports": {
+    ".": {
+      "browser": "./dist/standalone-browser.js",
+      "node": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build",
+    "test": "npx ts-node test/basic-test.ts",
+    "test:logging": "npx ts-node test/logging-test.ts",
+    "test:integration": "npx ts-node test/integration-test.ts",
+    "test:all": "npm run test && npm run test:logging && npm run test:integration",
+    "demo": "npx ts-node test/logging-demo.ts",
+    "test:watch": "tsc --watch",
+    "clean": "rimraf dist",
+    "lint": "echo \"Linting not configured yet\"",
+    "format": "echo \"Formatting not configured yet\""
+  },
+  "keywords": [
+    "opentelemetry",
+    "observability",
+    "tracing",
+    "metrics",
+    "logging",
+    "angular",
+    "react",
+    "vue",
+    "express",
+    "nextjs",
+    "signoz",
+    "datadog",
+    "monitoring"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/pepper-log.git"
+  },
+  "homepage": "https://github.com/yourusername/pepper-log#readme",
+  "bugs": {
+    "url": "https://github.com/yourusername/pepper-log/issues"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.64.1",
+    "@opentelemetry/exporter-jaeger": "^2.1.0",
+    "@opentelemetry/exporter-otlp-http": "^0.26.0",
+    "@opentelemetry/instrumentation-document-load": "^0.50.0",
+    "@opentelemetry/instrumentation-fetch": "^0.205.0",
+    "@opentelemetry/instrumentation-user-interaction": "^0.50.0",
+    "@opentelemetry/instrumentation-xml-http-request": "^0.205.0",
+    "@opentelemetry/resources": "^2.1.0",
+    "@opentelemetry/sdk-node": "^0.205.0",
+    "@opentelemetry/sdk-trace-web": "^2.1.0",
+    "@opentelemetry/semantic-conventions": "^1.37.0"
+  }
+}

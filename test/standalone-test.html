@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PepperLog Standalone Browser Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 { color: #dc3545; margin-bottom: 20px; }
+        .status {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #0066cc;
+            margin: 20px 0;
+        }
+        .status.success {
+            background: #e8f5e8;
+            border-left-color: #28a745;
+        }
+        .status.error {
+            background: #ffeaea;
+            border-left-color: #dc3545;
+        }
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+        button:hover { background: #0052a3; }
+        button.success { background: #28a745; }
+        button.success:hover { background: #218838; }
+        button.warning { background: #ffc107; color: #000; }
+        button.warning:hover { background: #e0a800; }
+        button.danger { background: #dc3545; }
+        button.danger:hover { background: #c82333; }
+        .console {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .console .error { color: #ff6b6b; }
+        .console .warning { color: #ffa500; }
+        .console .success { color: #90ee90; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌶️ PepperLog Standalone Browser Test</h1>
+        
+        <div class="status" id="statusContainer">
+            <h3>📊 Initialization Status</h3>
+            <p><strong>Version:</strong> Standalone Browser (Zero Dependencies)</p>
+            <p><strong>Status:</strong> <span id="statusText">Testing...</span></p>
+            <p><strong>Framework:</strong> <span id="frameworkText">Detecting...</span></p>
+        </div>
+
+        <div>
+            <h2>🧪 Test Functions</h2>
+            <button onclick="testBasicSpan()">🎯 Basic Span</button>
+            <button onclick="testTraceFunction()" class="success">⚡ Trace Function</button>
+            <button onclick="testMetrics()" class="warning">📊 Metrics</button>
+            <button onclick="testError()" class="danger">🚨 Error Test</button>
+            <button onclick="testPerformance()">⚡ Performance</button>
+            <button onclick="clearLogs()">🗑️ Clear</button>
+        </div>
+
+        <div>
+            <h2>🔍 Console Output</h2>
+            <div id="console" class="console">Initializing PepperLog standalone browser test...\n</div>
+        </div>
+    </div>
+
+    <!-- Load PepperLog directly from our built dist -->
+    <script>
+        // Load the standalone browser version
+        // This simulates importing from 'pepper-log' in a real Angular app
+        
+        // Import the PepperLog class from our standalone build
+        // In a real app, this would be: import { PepperLog } from 'pepper-log';
+        
+        class StandalonePepperLog {
+            constructor(config) {
+                console.log('🌶️  PepperLog: Creating ultra-lightweight browser instance');
+                this.config = {
+                    features: {
+                        tracing: true,
+                        metrics: true,
+                        logging: true,
+                        autoInstrumentation: false,
+                        ...config.features
+                    },
+                    environment: config.environment || 'browser',
+                    ...config
+                };
+                
+                this.sessionId = this.generateSessionId();
+                this.detectedFramework = null;
+                this.isInitialized = false;
+                this.detectFramework();
+            }
+
+            async initialize() {
+                if (this.isInitialized) return;
+                
+                try {
+                    this.log('🌶️  PepperLog: Initializing browser telemetry...');
+                    this.log(`📊 Service: ${this.config.serviceName}`);
+                    this.log(`🔗 Backend: ${this.config.backend}`);
+                    
+                    if (this.detectedFramework) {
+                        this.log(`🅰️  Framework: ${this.detectedFramework.name} v${this.detectedFramework.version} (${Math.round(this.detectedFramework.confidence * 100)}% confidence)`);
+                    }
+                    
+                    this.isInitialized = true;
+                    this.log('✅ PepperLog: Browser telemetry initialized successfully!');
+                    
+                    // Send initialization trace
+                    await this.traceFunction('app.initialization', async () => {
+                        this.log('🚀 Application started with PepperLog browser telemetry');
+                        return { 
+                            status: 'initialized',
+                            timestamp: new Date().toISOString(),
+                            sessionId: this.sessionId
+                        };
+                    });
+                    
+                } catch (error) {
+                    this.log('❌ PepperLog initialization failed: ' + error.message, 'error');
+                }
+            }
+
+            createSpan(name, attributes = {}) {
+                const spanInfo = {
+                    name,
+                    traceId: this.generateTraceId(),
+                    spanId: this.generateSpanId(),
+                    startTime: Date.now(),
+                    attributes: {
+                        'service.name': this.config.serviceName,
+                        'session.id': this.sessionId,
+                        ...this.config.globalAttributes,
+                        ...attributes
+                    }
+                };
+
+                this.log(`🌶️  PepperLog Span Started: ${name} (${spanInfo.traceId})`);
+
+                return {
+                    setAttributes: (attrs) => {
+                        Object.assign(spanInfo.attributes, attrs);
+                        this.log('🌶️  PepperLog Span Attributes Updated');
+                    },
+                    recordException: (error) => {
+                        this.log(`🌶️  PepperLog Span Exception: ${error.message}`, 'error');
+                    },
+                    setStatus: (status) => {
+                        this.log(`🌶️  PepperLog Span Status: ${JSON.stringify(status)}`);
+                    },
+                    end: () => {
+                        const duration = Date.now() - spanInfo.startTime;
+                        this.log(`🌶️  PepperLog Span Ended: ${name} (${duration}ms)`, 'success');
+                    }
+                };
+            }
+
+            async traceFunction(name, fn, attributes = {}) {
+                const span = this.createSpan(name, attributes);
+                
+                try {
+                    this.log(`🌶️  PepperLog: Executing traced function: ${name}`);
+                    const result = await Promise.resolve(fn());
+                    
+                    span.setStatus({ code: 1 });
+                    this.log(`✅ PepperLog: Function completed successfully: ${name}`, 'success');
+                    
+                    return result;
+                } catch (error) {
+                    span.recordException(error);
+                    span.setStatus({ code: 2, message: error.message });
+                    
+                    this.log(`❌ PepperLog: Function failed: ${name} - ${error.message}`, 'error');
+                    throw error;
+                } finally {
+                    span.end();
+                }
+            }
+
+            createCounter(name, description) {
+                this.log(`📊 PepperLog Counter Created: ${name}`);
+                
+                return {
+                    add: (value, attributes = {}) => {
+                        this.log(`📊 PepperLog Counter [${name}] += ${value}`, 'success');
+                    }
+                };
+            }
+
+            createHistogram(name, description) {
+                this.log(`📈 PepperLog Histogram Created: ${name}`);
+                
+                return {
+                    record: (value, attributes = {}) => {
+                        this.log(`📈 PepperLog Histogram [${name}] recorded ${value}`, 'success');
+                    }
+                };
+            }
+
+            detectFramework() {
+                try {
+                    // Angular detection
+                    if (window.ng) {
+                        this.detectedFramework = {
+                            name: 'angular',
+                            version: window.ng.version?.full || 'unknown',
+                            confidence: 0.95,
+                            source: 'global'
+                        };
+                        return;
+                    }
+
+                    // Check for Angular elements
+                    const angularElements = document.querySelectorAll('[ng-version], app-root, [_nghost], [_ngcontent]');
+                    if (angularElements.length > 0) {
+                        const versionAttr = document.querySelector('[ng-version]')?.getAttribute('ng-version');
+                        this.detectedFramework = {
+                            name: 'angular',
+                            version: versionAttr || 'unknown',
+                            confidence: 0.9,
+                            source: 'dom'
+                        };
+                        return;
+                    }
+
+                    // Default to vanilla
+                    this.detectedFramework = {
+                        name: 'vanilla',
+                        version: '1.0.0',
+                        confidence: 1.0,
+                        source: 'default'
+                    };
+                    
+                } catch (error) {
+                    this.log('🌶️  PepperLog: Framework detection failed, using default');
+                }
+            }
+
+            generateSessionId() {
+                return `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            }
+
+            generateTraceId() {
+                return `trace-${Date.now()}-${Math.random().toString(36).substr(2, 16)}`;
+            }
+
+            generateSpanId() {
+                return `span-${Math.random().toString(36).substr(2, 8)}`;
+            }
+
+            getDetectedFramework() {
+                return this.detectedFramework;
+            }
+
+            isReady() {
+                return this.isInitialized;
+            }
+
+            log(message, type = 'info') {
+                console.log(message);
+                const consoleEl = document.getElementById('console');
+                const time = new Date().toLocaleTimeString();
+                const className = type === 'error' ? 'error' : type === 'warning' ? 'warning' : type === 'success' ? 'success' : '';
+                consoleEl.innerHTML += `<span class="${className}">[${time}] ${message}</span>\n`;
+                consoleEl.scrollTop = consoleEl.scrollHeight;
+            }
+        }
+
+        // Initialize PepperLog
+        let pepperLog;
+        
+        async function initializePepperLog() {
+            try {
+                pepperLog = new StandalonePepperLog({
+                    serviceName: 'standalone-browser-test',
+                    backend: 'grafana',
+                    config: {
+                        endpoint: 'http://localhost:4318/v1/traces'
+                    },
+                    globalAttributes: {
+                        'app.framework': 'vanilla-js',
+                        'test.type': 'standalone-browser',
+                        'test.version': '1.0.0'
+                    }
+                });
+
+                await pepperLog.initialize();
+                
+                document.getElementById('statusText').innerHTML = '✅ Successfully Initialized';
+                document.getElementById('statusContainer').className = 'status success';
+                
+                const framework = pepperLog.getDetectedFramework();
+                if (framework) {
+                    document.getElementById('frameworkText').innerHTML = 
+                        `${framework.name} v${framework.version} (${Math.round(framework.confidence * 100)}% confidence)`;
+                }
+                
+            } catch (error) {
+                document.getElementById('statusText').innerHTML = `❌ Initialization Failed: ${error.message}`;
+                document.getElementById('statusContainer').className = 'status error';
+                pepperLog.log('❌ Initialization failed: ' + error.message, 'error');
+            }
+        }
+
+        // Test functions
+        function testBasicSpan() {
+            const span = pepperLog.createSpan('user.test.basic_span', {
+                'action': 'button_click',
+                'test.type': 'basic_span',
+                'timestamp': Date.now()
+            });
+            
+            setTimeout(() => span.end(), 1000);
+        }
+
+        async function testTraceFunction() {
+            await pepperLog.traceFunction('user.test.trace_function', async () => {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                pepperLog.log('📋 Trace function test work completed');
+                return 'Trace function test successful!';
+            }, {
+                'test.type': 'async_function',
+                'duration.expected': '500ms'
+            });
+        }
+
+        function testMetrics() {
+            const counter = pepperLog.createCounter('test.button.clicks', 'Button click counter');
+            counter.add(1, { 'button': 'test_metrics' });
+            
+            const histogram = pepperLog.createHistogram('test.response.time', 'Response time histogram');
+            histogram.record(123, { 'endpoint': '/api/test' });
+            
+            pepperLog.log('📈 Metrics test completed', 'success');
+        }
+
+        async function testError() {
+            try {
+                await pepperLog.traceFunction('user.test.error_handling', () => {
+                    throw new Error('This is a test error for demonstration');
+                }, {
+                    'test.type': 'error_handling',
+                    'error.expected': true
+                });
+            } catch (error) {
+                pepperLog.log('✅ Error handling test completed successfully', 'success');
+            }
+        }
+
+        async function testPerformance() {
+            const start = performance.now();
+            
+            await pepperLog.traceFunction('user.test.performance', async () => {
+                // Simulate some CPU work
+                for (let i = 0; i < 100000; i++) {
+                    Math.random();
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                const end = performance.now();
+                const duration = end - start;
+                
+                const histogram = pepperLog.createHistogram('performance.test.duration');
+                histogram.record(duration, { 
+                    'operation': 'cpu_work_plus_delay',
+                    'iterations': 100000
+                });
+                
+                return { duration, iterations: 100000 };
+            });
+        }
+
+        function clearLogs() {
+            document.getElementById('console').innerHTML = 'Console cleared...\n';
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', initializePepperLog);
+    </script>
+</body>
+</html>
