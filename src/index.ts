@@ -125,6 +125,52 @@ export class PepperLog implements PepperLogInstance {
       this.instance.fatal(message, error, attributes);
     }
   }
+
+  // Timer methods for automatic timing/duration logging
+  startTimer(operation: string, attributes?: Record<string, any>): any {
+    if ('startTimer' in this.instance && typeof this.instance.startTimer === 'function') {
+      return this.instance.startTimer(operation, attributes);
+    }
+    return null;
+  }
+
+  endTimer(timerId: string, attributes?: Record<string, any>): void {
+    if ('endTimer' in this.instance && typeof this.instance.endTimer === 'function') {
+      this.instance.endTimer(timerId, attributes);
+    }
+  }
+
+  async timeAsync<T>(operation: string, fn: () => Promise<T>, attributes?: Record<string, any>): Promise<T> {
+    if ('timeAsync' in this.instance && typeof this.instance.timeAsync === 'function') {
+      return this.instance.timeAsync(operation, fn, attributes);
+    }
+    // Fallback implementation
+    const startTime = Date.now();
+    try {
+      const result = await fn();
+      return result;
+    } finally {
+      // Basic logging fallback if no timer support
+      const duration = Date.now() - startTime;
+      console.log(`🌶️ Operation ${operation} completed in ${duration}ms`);
+    }
+  }
+
+  timeSync<T>(operation: string, fn: () => T, attributes?: Record<string, any>): T {
+    if ('timeSync' in this.instance && typeof this.instance.timeSync === 'function') {
+      return this.instance.timeSync(operation, fn, attributes);
+    }
+    // Fallback implementation
+    const startTime = Date.now();
+    try {
+      const result = fn();
+      return result;
+    } finally {
+      // Basic logging fallback if no timer support
+      const duration = Date.now() - startTime;
+      console.log(`🌶️ Operation ${operation} completed in ${duration}ms`);
+    }
+  }
 }
 
 // Internal Node.js implementation
