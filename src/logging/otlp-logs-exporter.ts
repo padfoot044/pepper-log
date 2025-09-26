@@ -65,6 +65,16 @@ export class OTLPLogsExporter {
       this.batchTimer = setTimeout(() => {
         this.flush();
       }, this.batchConfig.batchTimeout);
+
+      // Ensure this timer won't keep the Node.js event loop alive in tests
+      try {
+        // Some timer implementations (Node) expose unref()
+        if (typeof (this.batchTimer as any)?.unref === 'function') {
+          (this.batchTimer as any).unref();
+        }
+      } catch (_err) {
+        // ignore - unref is best-effort
+      }
     }
   }
 
@@ -101,7 +111,14 @@ export class OTLPLogsExporter {
       // Add to retry queue if we have retry attempts left
       if (this.retryQueue.length < this.batchConfig.maxQueueSize) {
         this.retryQueue.push(...logsToSend);
-        setTimeout(() => this.retryFailedLogs(), this.batchConfig.retryDelay);
+        const retryTimer = setTimeout(() => this.retryFailedLogs(), this.batchConfig.retryDelay);
+        try {
+          if (typeof (retryTimer as any)?.unref === 'function') {
+            (retryTimer as any).unref();
+          }
+        } catch (_err) {
+          // ignore - unref is best-effort
+        }
       }
     }
   }
