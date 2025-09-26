@@ -1,6 +1,6 @@
 {
   "name": "@padfoot044/pepper-log",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Comprehensive OpenTelemetry observability with structured logging and tracing for JavaScript/TypeScript frameworks. Supports OTLP traces AND logs with auto-correlation.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
