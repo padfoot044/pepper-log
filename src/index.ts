@@ -94,6 +94,37 @@ export class PepperLog implements PepperLogInstance {
     }
     return null;
   }
+
+  // Structured logging methods (v3.0.0+)
+  info(message: string, attributes?: Record<string, any>): void {
+    if ('info' in this.instance && typeof this.instance.info === 'function') {
+      this.instance.info(message, attributes);
+    }
+  }
+
+  warn(message: string, attributes?: Record<string, any>): void {
+    if ('warn' in this.instance && typeof this.instance.warn === 'function') {
+      this.instance.warn(message, attributes);
+    }
+  }
+
+  error(message: string, error?: Error, attributes?: Record<string, any>): void {
+    if ('error' in this.instance && typeof this.instance.error === 'function') {
+      this.instance.error(message, error, attributes);
+    }
+  }
+
+  debug(message: string, attributes?: Record<string, any>): void {
+    if ('debug' in this.instance && typeof this.instance.debug === 'function') {
+      this.instance.debug(message, attributes);
+    }
+  }
+
+  fatal(message: string, error?: Error, attributes?: Record<string, any>): void {
+    if ('fatal' in this.instance && typeof this.instance.fatal === 'function') {
+      this.instance.fatal(message, error, attributes);
+    }
+  }
 }
 
 // Internal Node.js implementation
@@ -312,10 +343,51 @@ class PepperLogNode implements PepperLogInstance {
       console.log('🌶️  PepperLog: Shutdown complete');
     }
   }
+
+  /**
+   * Structured logging methods (v3.0.0+) - Console fallback for Node.js
+   */
+  public info(message: string, attributes?: Record<string, any>): void {
+    console.info(`[INFO] ${message}`, attributes || {});
+  }
+
+  public warn(message: string, attributes?: Record<string, any>): void {
+    console.warn(`[WARN] ${message}`, attributes || {});
+  }
+
+  public error(message: string, error?: Error, attributes?: Record<string, any>): void {
+    const allAttributes = {
+      ...(error ? {
+        'error.type': error.name,
+        'error.message': error.message,
+        'error.stack': error.stack
+      } : {}),
+      ...(attributes || {})
+    };
+    console.error(`[ERROR] ${message}`, allAttributes);
+  }
+
+  public debug(message: string, attributes?: Record<string, any>): void {
+    console.debug(`[DEBUG] ${message}`, attributes || {});
+  }
+
+  public fatal(message: string, error?: Error, attributes?: Record<string, any>): void {
+    const allAttributes = {
+      ...(error ? {
+        'error.type': error.name,
+        'error.message': error.message,
+        'error.stack': error.stack
+      } : {}),
+      ...(attributes || {})
+    };
+    console.error(`[FATAL] ${message}`, allAttributes);
+  }
 }
 
 // Export the main class and types
 export * from './types';
+export * from './logging/types';
 export { FrameworkDetector } from './detector';
 export { BackendFactory } from './backends';
 export { FrameworkIntegrationFactory } from './frameworks';
+export { PepperLogger } from './logging/logger';

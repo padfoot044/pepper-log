@@ -1,4 +1,4 @@
-# 🌶️ PepperLog v3.0.0
+# 🌶️ PepperLog v3.0.2
 
 **Comprehensive OpenTelemetry observability with structured logging and distributed tracing for JavaScript/TypeScript frameworks. Now supports OTLP traces AND logs with automatic correlation.**
 

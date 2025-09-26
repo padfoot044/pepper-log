@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.2] - 2025-09-26
+
+### Fixed
+- **API Integration**: Fixed missing `logsEndpoint` configuration in main `BackendConfig` interface
+- **Export Resolution**: Added proper export of `LogLevel` enum from main package
+- **Method Availability**: Added logging methods (`info`, `warn`, `error`, `debug`, `fatal`) to main `PepperLog` class
+- **TypeScript Definitions**: Updated interface definitions to match actual implementation
+- **Cross-Platform Support**: Ensured logging methods work in both Node.js and browser environments
+
+### Added
+- **API Tests**: Added comprehensive test suite for main PepperLog class API (6 new tests)
+- **Configuration Validation**: Added tests for `logsEndpoint` configuration and LogLevel enum usage
+- **Integration Validation**: Added tests ensuring logging methods work correctly on main class instance
+
+### Technical Details
+- Fixed TypeScript compilation issues with duplicate LogLevel exports
+- Updated both `PepperLogNode` and `PepperLogSimple` implementations to support logging methods
+- Added proper method delegation in main `PepperLog` wrapper class
+- Maintained backward compatibility with existing API
+
+### Testing
+- **Total Tests**: 48 (previously 42)
+- **Test Coverage**: All core functionality, OTLP protocol compliance, integration scenarios, and main API
+- **Status**: All tests passing ✅
+
 ## [1.0.0] - 2024-09-24
 
 ### Added

@@ -1,6 +1,6 @@
 {
   "name": "@padfoot044/pepper-log",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Comprehensive OpenTelemetry observability with structured logging and tracing for JavaScript/TypeScript frameworks. Supports OTLP traces AND logs with auto-correlation.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -19,12 +19,14 @@
     "dev": "tsc --watch",
     "clean": "rimraf dist",
     "prepublishOnly": "npm run clean && npm run build",
-    "test": "npx ts-node test/basic-test.ts",
-    "test:logging": "npx ts-node test/logging-test.ts",
-    "test:integration": "npx ts-node test/integration-test.ts",
-    "test:all": "npm run test && npm run test:logging && npm run test:integration",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:logging": "jest --testPathPatterns=logging",
+    "test:integration": "jest --testPathPatterns=integration",
+    "test:all": "jest --coverage --verbose",
+    "test:legacy": "npx ts-node test/basic-test.ts",
     "demo": "npx ts-node test/logging-demo.ts",
-    "test:watch": "tsc --watch",
     "lint": "echo \"Linting not configured yet\"",
     "format": "echo \"Formatting not configured yet\""
   },
@@ -72,8 +74,11 @@
     "node": ">=14.0.0"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.5.2",
+    "jest": "^30.1.3",
     "rimraf": "^6.0.1",
+    "ts-jest": "^29.4.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },

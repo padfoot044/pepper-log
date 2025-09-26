@@ -212,6 +212,45 @@ export class PepperLogSimple implements PepperLogInstance {
   }
 
   /**
+   * Structured logging methods (v3.0.0+)
+   */
+  public info(message: string, attributes?: Record<string, any>): void {
+    console.info(`[INFO] ${message}`, attributes || {});
+  }
+
+  public warn(message: string, attributes?: Record<string, any>): void {
+    console.warn(`[WARN] ${message}`, attributes || {});
+  }
+
+  public error(message: string, error?: Error, attributes?: Record<string, any>): void {
+    const allAttributes = {
+      ...(error ? {
+        'error.type': error.name,
+        'error.message': error.message,
+        'error.stack': error.stack
+      } : {}),
+      ...(attributes || {})
+    };
+    console.error(`[ERROR] ${message}`, allAttributes);
+  }
+
+  public debug(message: string, attributes?: Record<string, any>): void {
+    console.debug(`[DEBUG] ${message}`, attributes || {});
+  }
+
+  public fatal(message: string, error?: Error, attributes?: Record<string, any>): void {
+    const allAttributes = {
+      ...(error ? {
+        'error.type': error.name,
+        'error.message': error.message,
+        'error.stack': error.stack
+      } : {}),
+      ...(attributes || {})
+    };
+    console.error(`[FATAL] ${message}`, allAttributes);
+  }
+
+  /**
    * Shutdown telemetry
    */
   public async shutdown(): Promise<void> {
