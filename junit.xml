@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="48" failures="0" errors="0" time="1.939">
+  <testsuite name="PepperLog Main API" errors="0" failures="0" skipped="0" timestamp="2025-09-26T13:30:03" time="1.384" tests="6">
+    <testcase classname="PepperLog Main API API Availability should expose LogLevel enum" name="PepperLog Main API API Availability should expose LogLevel enum" time="0.002">
+    </testcase>
+    <testcase classname="PepperLog Main API API Availability should have logsEndpoint in config interface" name="PepperLog Main API API Availability should have logsEndpoint in config interface" time="0.013">
+    </testcase>
+    <testcase classname="PepperLog Main API API Availability should have logging methods available on main class" name="PepperLog Main API API Availability should have logging methods available on main class" time="0.002">
+    </testcase>
+    <testcase classname="PepperLog Main API API Availability should call logging methods without errors" name="PepperLog Main API API Availability should call logging methods without errors" time="0.007">
+    </testcase>
+    <testcase classname="PepperLog Main API Configuration Validation should accept full v3.0.0 configuration" name="PepperLog Main API Configuration Validation should accept full v3.0.0 configuration" time="0.004">
+    </testcase>
+    <testcase classname="PepperLog Main API Configuration Validation should work with auto-derived logs endpoint" name="PepperLog Main API Configuration Validation should work with auto-derived logs endpoint" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="OTLP Logs Exporter" errors="0" failures="0" skipped="0" timestamp="2025-09-26T13:30:04" time="0.262" tests="12">
+    <testcase classname="OTLP Logs Exporter Configuration should create exporter with correct configuration" name="OTLP Logs Exporter Configuration should create exporter with correct configuration" time="0.001">
+    </testcase>
+    <testcase classname="OTLP Logs Exporter Configuration should handle custom headers" name="OTLP Logs Exporter Configuration should handle custom headers" time="0">
+    </testcase>
+    <testcase classname="OTLP Logs Exporter Log Processing should add log records" name="OTLP Logs Exporter Log Processing should add log records" time="0">
+    </testcase>
+    <testcase classname="OTLP Logs Exporter Log Processing should handle multiple log records" name="OTLP Logs Exporter Log Processing should handle multiple log records" time="0.001">
+    </testcase>
+    <testcase classname="OTLP Logs Exporter Log Processing should handle logs with trace correlation" name="OTLP Logs Exporter Log Processing should handle logs with trace correlation" time="0">
+    </testcase>
+    <testcase classname="OTLP Logs Exporter Batching Behavior should batch logs before sending" name="OTLP Logs Exporter Batching Behavior should batch logs before sending" time="0.001">
+    </testcase>
+    <testcase classname="OTLP Logs Exporter Batching Behavior should flush when batch size is reached" name="OTLP Logs Exporter Batching Behavior should flush when batch size is reached" time="0.121">
+    </testcase>
+    <testcase classname="OTLP Logs Exporter Network Error Handling should handle network failures gracefully" name="OTLP Logs Exporter Network Error Handling should handle network failures gracefully" time="0.002">
+    </testcase>
+    <testcase classname="OTLP Logs Exporter Network Error Handling should handle HTTP error responses" name="OTLP Logs Exporter Network Error Handling should handle HTTP error responses" time="0.002">
+    </testcase>
+    <testcase classname="OTLP Logs Exporter OTLP Format should format logs according to OTLP specification" name="OTLP Logs Exporter OTLP Format should format logs according to OTLP specification" time="0.104">
+    </testcase>
+    <testcase classname="OTLP Logs Exporter Resource Management should handle flush operation" name="OTLP Logs Exporter Resource Management should handle flush operation" time="0">
+    </testcase>
+    <testcase classname="OTLP Logs Exporter Resource Management should handle shutdown operation" name="OTLP Logs Exporter Resource Management should handle shutdown operation" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="PepperLog v3.0.0 - Logging Features" errors="0" failures="0" skipped="0" timestamp="2025-09-26T13:30:04" time="0.032" tests="17">
+    <testcase classname="PepperLog v3.0.0 - Logging Features Basic Logging Operations should create logger instance" name="PepperLog v3.0.0 - Logging Features Basic Logging Operations should create logger instance" time="0.001">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Basic Logging Operations should have info logging method" name="PepperLog v3.0.0 - Logging Features Basic Logging Operations should have info logging method" time="0.001">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Basic Logging Operations should have error logging method with exception handling" name="PepperLog v3.0.0 - Logging Features Basic Logging Operations should have error logging method with exception handling" time="0.003">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Basic Logging Operations should have warn logging method" name="PepperLog v3.0.0 - Logging Features Basic Logging Operations should have warn logging method" time="0.001">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Basic Logging Operations should have debug logging method" name="PepperLog v3.0.0 - Logging Features Basic Logging Operations should have debug logging method" time="0">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Basic Logging Operations should have fatal logging method" name="PepperLog v3.0.0 - Logging Features Basic Logging Operations should have fatal logging method" time="0.001">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Logging Configuration should respect log level configuration" name="PepperLog v3.0.0 - Logging Features Logging Configuration should respect log level configuration" time="0">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Logging Configuration should handle disabled logging gracefully" name="PepperLog v3.0.0 - Logging Features Logging Configuration should handle disabled logging gracefully" time="0.001">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Attribute Handling should handle null attributes gracefully" name="PepperLog v3.0.0 - Logging Features Attribute Handling should handle null attributes gracefully" time="0">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Attribute Handling should handle undefined attributes gracefully" name="PepperLog v3.0.0 - Logging Features Attribute Handling should handle undefined attributes gracefully" time="0">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Attribute Handling should handle empty attributes object" name="PepperLog v3.0.0 - Logging Features Attribute Handling should handle empty attributes object" time="0.001">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Attribute Handling should handle complex attribute values" name="PepperLog v3.0.0 - Logging Features Attribute Handling should handle complex attribute values" time="0">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Error Handling should handle logging errors gracefully" name="PepperLog v3.0.0 - Logging Features Error Handling should handle logging errors gracefully" time="0">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Error Handling should handle malformed error objects" name="PepperLog v3.0.0 - Logging Features Error Handling should handle malformed error objects" time="0">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Context Methods should have withContext method if available" name="PepperLog v3.0.0 - Logging Features Context Methods should have withContext method if available" time="0">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Context Methods should handle flush operation if available" name="PepperLog v3.0.0 - Logging Features Context Methods should handle flush operation if available" time="0">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Logging Features Context Methods should handle shutdown operation if available" name="PepperLog v3.0.0 - Logging Features Context Methods should handle shutdown operation if available" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="PepperLog v3.0.0 - Integration Tests" errors="0" failures="0" skipped="0" timestamp="2025-09-26T13:30:05" time="0.046" tests="13">
+    <testcase classname="PepperLog v3.0.0 - Integration Tests Logging Workflow Integration should demonstrate the complete logging API" name="PepperLog v3.0.0 - Integration Tests Logging Workflow Integration should demonstrate the complete logging API" time="0.001">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Integration Tests Logging Workflow Integration should validate log level hierarchy" name="PepperLog v3.0.0 - Integration Tests Logging Workflow Integration should validate log level hierarchy" time="0.001">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Integration Tests Logging Workflow Integration should demonstrate proper error handling patterns" name="PepperLog v3.0.0 - Integration Tests Logging Workflow Integration should demonstrate proper error handling patterns" time="0">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Integration Tests Logging Workflow Integration should handle various attribute types" name="PepperLog v3.0.0 - Integration Tests Logging Workflow Integration should handle various attribute types" time="0.001">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Integration Tests OTLP Specification Compliance should create proper log record structure" name="PepperLog v3.0.0 - Integration Tests OTLP Specification Compliance should create proper log record structure" time="0">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Integration Tests OTLP Specification Compliance should handle trace correlation data format" name="PepperLog v3.0.0 - Integration Tests OTLP Specification Compliance should handle trace correlation data format" time="0.001">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Integration Tests OTLP Specification Compliance should convert timestamps to nanoseconds for OTLP" name="PepperLog v3.0.0 - Integration Tests OTLP Specification Compliance should convert timestamps to nanoseconds for OTLP" time="0">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Integration Tests Configuration Validation should validate endpoint URLs" name="PepperLog v3.0.0 - Integration Tests Configuration Validation should validate endpoint URLs" time="0">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Integration Tests Configuration Validation should handle batch configuration bounds" name="PepperLog v3.0.0 - Integration Tests Configuration Validation should handle batch configuration bounds" time="0">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Integration Tests Performance Considerations should handle high-frequency logging efficiently" name="PepperLog v3.0.0 - Integration Tests Performance Considerations should handle high-frequency logging efficiently" time="0.021">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Integration Tests Performance Considerations should handle large attribute payloads" name="PepperLog v3.0.0 - Integration Tests Performance Considerations should handle large attribute payloads" time="0.001">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Integration Tests Error Recovery and Resilience should handle malformed data gracefully" name="PepperLog v3.0.0 - Integration Tests Error Recovery and Resilience should handle malformed data gracefully" time="0">
+    </testcase>
+    <testcase classname="PepperLog v3.0.0 - Integration Tests Error Recovery and Resilience should demonstrate graceful degradation" name="PepperLog v3.0.0 - Integration Tests Error Recovery and Resilience should demonstrate graceful degradation" time="0">
+    </testcase>
+  </testsuite>
+</testsuites>
