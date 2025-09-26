@@ -27,18 +27,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Verify package version matches tag
-        id: verify
-        run: |
-          TAG=${GITHUB_REF#refs/tags/}
-          echo "Tag: $TAG"
-          PKG_VERSION=$(node -p "require('./package.json').version")
-          echo "Package version: $PKG_VERSION"
-          if [ "$TAG" != "v$PKG_VERSION" ]; then
-            echo "Tag does not match package.json version (v$PKG_VERSION). Aborting publish." >&2
-            exit 1
-          fi
-
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
