@@ -474,12 +474,13 @@ export class PepperLog {
     }
   }
 
-  withContext(attributes: Record<string, any>): any {
+  withContext(attributes: Record<string, any>): PepperLog {
     if (this.logger) {
-      return {
-        ...this,
-        logger: this.logger.withContext(attributes)
-      };
+      // Create a shallow clone and update the logger with context
+      const contextualPepperLog = Object.create(Object.getPrototypeOf(this));
+      Object.assign(contextualPepperLog, this);
+      contextualPepperLog.logger = this.logger.withContext(attributes);
+      return contextualPepperLog;
     }
     return this;
   }
@@ -493,6 +494,112 @@ export class PepperLog {
         'operation.duration_ms': duration,
         ...attributes
       });
+    }
+  }
+
+  // Timer methods for automatic timing/duration logging
+  startTimer(operation: string, attributes?: Record<string, any>): any {
+    if (this.logger) {
+      return this.logger.startTimer(operation, attributes);
+    }
+    
+    // Fallback implementation for when no logger is available
+    const startTime = Date.now();
+    const timerId = `timer-${startTime}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    return {
+      id: timerId,
+      operation,
+      startTime,
+      startAttributes: attributes || {},
+      end: (endAttributes?: Record<string, any>) => {
+        const duration = Date.now() - startTime;
+        this.logDuration(operation, duration, { ...attributes, ...endAttributes });
+      },
+      cancel: () => {
+        console.warn('🌶️ PepperLog Timer cancelled:', operation);
+      },
+      addContext: (contextAttributes: Record<string, any>) => {
+        // No-op for fallback implementation
+      }
+    };
+  }
+
+  endTimer(timerId: string, attributes?: Record<string, any>): void {
+    if (this.logger) {
+      this.logger.endTimer(timerId, attributes);
+    } else {
+      console.warn('🌶️ PepperLog: Cannot end timer, logger not available');
+    }
+  }
+
+  async timeAsync<T>(operation: string, fn: () => Promise<T>, attributes?: Record<string, any>): Promise<T> {
+    if (this.logger) {
+      return this.logger.timeAsync(operation, fn, attributes);
+    }
+    
+    // Fallback implementation
+    const startTime = Date.now();
+    try {
+      const result = await fn();
+      const duration = Date.now() - startTime;
+      this.logDuration(operation, duration, { 
+        ...attributes, 
+        'timing.status': 'success',
+        'timing.type': 'async'
+      });
+      return result;
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      this.logDuration(operation, duration, { 
+        ...attributes, 
+        'timing.status': 'error',
+        'timing.error': error instanceof Error ? error.message : String(error),
+        'timing.type': 'async'
+      });
+      throw error;
+    }
+  }
+
+  timeSync<T>(operation: string, fn: () => T, attributes?: Record<string, any>): T {
+    if (this.logger) {
+      return this.logger.timeSync(operation, fn, attributes);
+    }
+    
+    // Fallback implementation
+    const startTime = Date.now();
+    try {
+      const result = fn();
+      const duration = Date.now() - startTime;
+      this.logDuration(operation, duration, { 
+        ...attributes, 
+        'timing.status': 'success',
+        'timing.type': 'sync'
+      });
+      return result;
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      this.logDuration(operation, duration, { 
+        ...attributes, 
+        'timing.status': 'error',
+        'timing.error': error instanceof Error ? error.message : String(error),
+        'timing.type': 'sync'
+      });
+      throw error;
+    }
+  }
+
+  // Timer utility methods
+  getActiveTimers(): any[] {
+    if (this.logger && 'getActiveTimers' in this.logger && typeof this.logger.getActiveTimers === 'function') {
+      return this.logger.getActiveTimers();
+    }
+    return [];
+  }
+
+  cleanupTimers(): void {
+    if (this.logger && 'cleanupTimers' in this.logger && typeof this.logger.cleanupTimers === 'function') {
+      this.logger.cleanupTimers();
     }
   }
 

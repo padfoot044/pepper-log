@@ -1,7 +1,8 @@
 // Main Logger Implementation - Structured logging with OTLP export
-import { Logger, LogLevel, LogRecord, LoggingConfig, LogBatchConfig } from './types';
+import { Logger, LogLevel, LogRecord, LoggingConfig, LogBatchConfig, Timer } from './types';
 import { OTLPLogsExporter } from './otlp-logs-exporter';
 import { TraceLogCorrelator } from './correlator';
+import { PepperTimerManager } from './timer';
 
 export class PepperLogger implements Logger {
   private config: LoggingConfig;
@@ -10,6 +11,7 @@ export class PepperLogger implements Logger {
   private contextAttributes: Record<string, any> = {};
   private serviceName: string;
   private globalResource: Record<string, any>;
+  private timerManager: PepperTimerManager;
 
   constructor(config: {
     serviceName: string;
@@ -25,6 +27,12 @@ export class PepperLogger implements Logger {
     };
     this.globalResource = config.globalResource || {};
     this.correlator = new TraceLogCorrelator();
+
+    // Initialize timer manager
+    this.timerManager = new PepperTimerManager(
+      (operation, duration, attributes) => this.logDuration(operation, duration, attributes),
+      (message, attributes) => this.warn(message, attributes)
+    );
 
     if (this.config.enabled && (this.config.endpoint || config.endpoint)) {
       this.setupExporter(this.config.endpoint || config.endpoint!);
@@ -151,6 +159,7 @@ export class PepperLogger implements Logger {
     };
     childLogger.correlator = this.correlator; // Share correlator
     childLogger.exporter = this.exporter; // Share exporter
+    childLogger.timerManager = this.timerManager; // Share timer manager
 
     return childLogger;
   }
@@ -206,6 +215,73 @@ export class PepperLogger implements Logger {
     }
 
     return this.correlator.withTraceContext({ traceId, spanId }, fn);
+  }
+
+  // Timer methods for automatic timing/duration logging
+  startTimer(operation: string, attributes: Record<string, any> = {}): Timer {
+    return this.timerManager.startTimer(operation, {
+      ...this.contextAttributes,
+      ...attributes
+    });
+  }
+
+  endTimer(timerId: string, attributes: Record<string, any> = {}): void {
+    this.timerManager.endTimer(timerId, attributes);
+  }
+
+  async timeAsync<T>(operation: string, fn: () => Promise<T>, attributes: Record<string, any> = {}): Promise<T> {
+    const timer = this.startTimer(operation, {
+      ...attributes,
+      'timing.type': 'async',
+      'timing.pattern': 'function_wrapper'
+    });
+
+    try {
+      const result = await fn();
+      timer.end({
+        'timing.status': 'success',
+        'timing.result': typeof result === 'object' ? 'object' : typeof result
+      });
+      return result;
+    } catch (error) {
+      timer.end({
+        'timing.status': 'error',
+        'timing.error': error instanceof Error ? error.message : String(error)
+      });
+      throw error;
+    }
+  }
+
+  timeSync<T>(operation: string, fn: () => T, attributes: Record<string, any> = {}): T {
+    const timer = this.startTimer(operation, {
+      ...attributes,
+      'timing.type': 'sync',
+      'timing.pattern': 'function_wrapper'
+    });
+
+    try {
+      const result = fn();
+      timer.end({
+        'timing.status': 'success',
+        'timing.result': typeof result === 'object' ? 'object' : typeof result
+      });
+      return result;
+    } catch (error) {
+      timer.end({
+        'timing.status': 'error',
+        'timing.error': error instanceof Error ? error.message : String(error)
+      });
+      throw error;
+    }
+  }
+
+  // Timer utility methods
+  getActiveTimers(): Timer[] {
+    return this.timerManager.getActiveTimers();
+  }
+
+  cleanupTimers(): void {
+    this.timerManager.cleanup();
   }
 
   // Utility methods
@@ -278,6 +354,9 @@ export class PepperLogger implements Logger {
   }
 
   shutdown(): void {
+    // Cleanup active timers before shutdown
+    this.timerManager.cleanup();
+    
     if (this.exporter) {
       this.exporter.shutdown();
     }

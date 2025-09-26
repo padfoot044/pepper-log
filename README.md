@@ -9,6 +9,7 @@
 
 - 📝 **Structured Logging**: Real logs sent to `/v1/logs` endpoint (not just traces!)
 - 🔗 **Trace-Log Correlation**: Automatic correlation with trace/span IDs
+- ⏱️ **Automatic Timing**: Effortless performance monitoring with timer utilities
 - 🎯 **Proper Separation**: Traces appear in "Traces", Logs in "Logs" sections
 - ⚡ **Enhanced Performance**: Batched exports for both traces and logs
 - 🌐 **Full OTLP Support**: Complete OpenTelemetry Logs Protocol implementation
@@ -20,7 +21,8 @@
 - 🎯 **Auto-Detection**: Automatically detects frameworks (Angular, React, Vue, Next.js, Express, etc.)
 - 🔌 **Multiple Backends**: SigNoz, Grafana, Datadog, Jaeger, New Relic, and more
 - 🌐 **Zero Browser Conflicts**: Browser-optimized with no Node.js dependencies
-- 📊 **Complete Telemetry**: Tracing, structured logging, and metrics in one package
+- 📊 **Complete Telemetry**: Tracing, structured logging, metrics, and automatic timing
+- ⏱️ **Performance Monitoring**: Built-in timer utilities for effortless duration tracking
 - 🛡️ **Error-Safe**: Graceful degradation - your app continues even if telemetry fails
 - 📝 **TypeScript Support**: Full TypeScript definitions included
 
@@ -110,6 +112,104 @@ logger.error('Error occurred', error, { context: 'payment' }); // Real log entry
 logger.traceFunction('operation', async () => {         // Real span
   logger.info('Step completed');  // Correlated log with trace ID!
 });
+```
+
+## ⏱️ Automatic Timing/Duration Logging
+
+PepperLog includes a powerful **automatic timing feature** that makes performance monitoring effortless. All timing operations are automatically logged with contextual information.
+
+### Manual Timer Management
+
+```typescript
+// Start a timer with context
+const timer = logger.startTimer('data-processing', {
+  'process.type': 'user_data',
+  'process.batch_size': 1000
+});
+
+// Add context during processing
+timer.addContext({
+  'process.records_processed': 750,
+  'process.errors': 0
+});
+
+// Complete the timer (automatically logs duration)
+timer.end({
+  'process.status': 'completed',
+  'process.optimization_applied': true
+});
+
+// Cancel timer if needed
+timer.cancel();
+```
+
+### Function Wrapper Timing
+
+```typescript
+// Time async operations automatically
+const result = await logger.timeAsync('api-call', async () => {
+  const response = await fetch('/api/users/profile');
+  return response.json();
+}, {
+  'api.endpoint': '/users/profile',
+  'api.method': 'GET',
+  'api.timeout': 5000
+});
+
+// Time sync operations
+const calculationResult = logger.timeSync('complex-calculation', () => {
+  return performExpensiveCalculation();
+}, {
+  'calculation.type': 'mathematical',
+  'calculation.complexity': 'high'
+});
+```
+
+### Nested Timing with Context
+
+```typescript
+const contextLogger = logger.withContext({
+  'user.id': '12345',
+  'session.id': 'sess-abc-789'
+});
+
+await contextLogger.timeAsync('user-checkout-process', async () => {
+  // Step 1: Validation
+  const validationTimer = contextLogger.startTimer('checkout-validation');
+  await validateCheckout();
+  validationTimer.end({ 'validation.items': 3 });
+
+  // Step 2: Payment processing (nested timing)
+  await contextLogger.timeAsync('payment-processing', async () => {
+    return await processPayment();
+  }, { 'payment.method': 'credit_card' });
+
+  return { orderId: 'ord-123' };
+}, { 'checkout.type': 'express' });
+```
+
+### Key Benefits
+
+- **Effortless Performance Monitoring**: No manual timestamp management
+- **Consistent Logging Format**: All timing logs follow the same structure
+- **Contextual Information**: Capture operation parameters and results
+- **Multiple Patterns**: Manual timers, function wrappers, and nested timers
+- **Automatic Cleanup**: Timers are cleaned up even if operations fail
+- **Error Handling**: Failed operations still log their timing data
+
+### Timer Methods
+
+| Method | Description |
+|--------|-------------|
+| `startTimer(operation, attributes?)` | Start a new timer with optional context |
+| `endTimer(timerId, attributes?)` | End a timer by ID |
+| `timeAsync(operation, fn, attributes?)` | Time an async function |
+| `timeSync(operation, fn, attributes?)` | Time a sync function |
+| `getActiveTimers()` | Get list of currently active timers |
+| `cleanupTimers()` | Cancel and clean up all active timers |
+
+All timing operations automatically integrate with the existing logging system and appear in your observability dashboards with structured data for easy querying and analysis.
+
 ```
 
 ## 🎯 Framework Integration

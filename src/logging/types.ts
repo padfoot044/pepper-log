@@ -74,6 +74,26 @@ export interface OTLPLogsPayload {
   }>;
 }
 
+// Timer-related interfaces for automatic timing functionality
+export interface Timer {
+  readonly id: string;
+  readonly operation: string;
+  readonly startTime: number;
+  readonly startAttributes: Record<string, any>;
+  end(attributes?: Record<string, any>): void;
+  cancel(): void;
+  addContext(attributes: Record<string, any>): void;
+}
+
+export interface TimerManager {
+  startTimer(operation: string, attributes?: Record<string, any>): Timer;
+  getTimer(id: string): Timer | undefined;
+  endTimer(id: string, attributes?: Record<string, any>): void;
+  cancelTimer(id: string): void;
+  getActiveTimers(): Timer[];
+  cleanup(): void;
+}
+
 export interface Logger {
   debug(message: string, attributes?: Record<string, any>): void;
   info(message: string, attributes?: Record<string, any>): void;
@@ -85,4 +105,10 @@ export interface Logger {
   log(level: LogLevel, message: string, attributes?: Record<string, any>): void;
   withContext(attributes: Record<string, any>): Logger;
   logDuration(operation: string, duration: number, attributes?: Record<string, any>): void;
+  
+  // Timer methods
+  startTimer(operation: string, attributes?: Record<string, any>): Timer;
+  endTimer(timerId: string, attributes?: Record<string, any>): void;
+  timeAsync<T>(operation: string, fn: () => Promise<T>, attributes?: Record<string, any>): Promise<T>;
+  timeSync<T>(operation: string, fn: () => T, attributes?: Record<string, any>): T;
 }
