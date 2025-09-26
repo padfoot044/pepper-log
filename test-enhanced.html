@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PepperLog v2.0.0 - Enhanced Traces & Logs Test</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .container { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        h1 { color: #ff6b6b; text-align: center; margin-bottom: 10px; }
+        .version { text-align: center; font-size: 1.2em; margin-bottom: 30px; opacity: 0.9; }
+        .status { padding: 15px; margin: 15px 0; border-radius: 8px; }
+        .success { background: rgba(46, 125, 50, 0.3); border-left: 4px solid #4caf50; }
+        .error { background: rgba(211, 47, 47, 0.3); border-left: 4px solid #f44336; }
+        .info { background: rgba(21, 101, 192, 0.3); border-left: 4px solid #2196f3; }
+        .warning { background: rgba(245, 124, 0, 0.3); border-left: 4px solid #ff9800; }
+        
+        button { 
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4); 
+            color: white; border: none; padding: 15px 25px; 
+            border-radius: 25px; cursor: pointer; margin: 10px 8px 10px 0; 
+            font-weight: bold; transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+        button:active { transform: translateY(0px); }
+        
+        .code { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 10px; font-family: 'Courier New', monospace; margin: 15px 0; overflow-x: auto; }
+        .network-check { background: rgba(255, 152, 0, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #ff9800; }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }
+        .feature-card { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; border-left: 4px solid #4ecdc4; }
+        .feature-card h3 { margin-top: 0; color: #4ecdc4; }
+        
+        #logs { max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.4); border-radius: 10px; padding: 15px; margin-top: 15px; }
+        .log-entry { margin: 8px 0; padding: 8px; border-radius: 5px; font-family: 'Courier New', monospace; font-size: 0.9em; }
+        .log-debug { background: rgba(156, 39, 176, 0.2); border-left: 3px solid #9c27b0; }
+        .log-info { background: rgba(33, 150, 243, 0.2); border-left: 3px solid #2196f3; }
+        .log-warn { background: rgba(255, 152, 0, 0.2); border-left: 3px solid #ff9800; }
+        .log-error { background: rgba(244, 67, 54, 0.2); border-left: 3px solid #f44336; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌶️ PepperLog v2.0.0 Enhanced Test</h1>
+        <div class="version">Comprehensive OpenTelemetry with Traces AND Logs</div>
+        
+        <div class="info status">
+            <strong>🚀 Major New Features in v2.0.0:</strong><br>
+            • <strong>Structured Logging</strong>: Real logs sent to /v1/logs endpoint<br>
+            • <strong>Trace-Log Correlation</strong>: Automatic correlation with trace/span IDs<br>
+            • <strong>Proper Separation</strong>: Traces go to "Traces", Logs go to "Logs" sections<br>
+            • <strong>Enhanced Performance</strong>: Batched exports for both traces and logs<br>
+            • <strong>Full OTLP Support</strong>: OpenTelemetry Logs Protocol implementation
+        </div>
+
+        <div class="network-check">
+            <strong>📊 Network Monitoring Instructions:</strong><br>
+            1. Open Browser DevTools (F12)<br>
+            2. Go to Network tab and filter by "Fetch/XHR"<br>
+            3. Click test buttons below<br>
+            4. Look for <strong>TWO types</strong> of POST requests:<br>
+            &nbsp;&nbsp;&nbsp;• <code>POST /v1/traces</code> - Tracing data<br>
+            &nbsp;&nbsp;&nbsp;• <code>POST /v1/logs</code> - Structured logs<br>
+            5. Check your observability backend for separate Traces and Logs sections
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>🎯 Traces (Existing)</h3>
+                <p>Creates spans and traces for performance monitoring and distributed tracing.</p>
+                <strong>Endpoint:</strong> <code>/v1/traces</code><br>
+                <strong>Backend Section:</strong> "Traces" or "APM"
+            </div>
+            <div class="feature-card">
+                <h3>📝 Logs (NEW!)</h3>
+                <p>Structured logging with levels, attributes, and automatic correlation with traces.</p>
+                <strong>Endpoint:</strong> <code>/v1/logs</code><br>
+                <strong>Backend Section:</strong> "Logs" or "Log Management"
+            </div>
+        </div>
+
+        <h2>Test Configuration</h2>
+        <div class="code">
+serviceName: 'browser-enhanced-test'
+backend: 'signoz' (or 'grafana')
+
+Endpoints:
+  traces: http://localhost:4318/v1/traces
+  logs:   http://localhost:4318/v1/logs
+
+Features:
+  ✅ Tracing: Create spans and distributed traces
+  ✅ Logging: Structured logs with levels and attributes
+  ✅ Correlation: Automatic trace-log correlation
+  ✅ Batching: Efficient batch exports for performance
+        </div>
+
+        <h2>Test Actions</h2>
+        <button onclick="testBasicLogging()">📝 Test Basic Logging</button>
+        <button onclick="testTracing()">🎯 Test Tracing</button>
+        <button onclick="testCorrelation()">🔗 Test Trace-Log Correlation</button>
+        <button onclick="testErrorHandling()">❌ Test Error Handling</button>
+        <button onclick="testPerformance()">⚡ Test Performance Logging</button>
+        <button onclick="clearLogs()">🧹 Clear Logs</button>
+
+        <h2>Status & Results</h2>
+        <div id="status"></div>
+        <div id="logs"></div>
+
+        <div class="info status" style="margin-top: 30px;">
+            <strong>🎯 Expected Results:</strong><br>
+            <strong>✅ Success Indicators:</strong><br>
+            • Console shows "Successfully sent X traces/logs to OTLP endpoint"<br>
+            • Network tab shows POST requests to both /v1/traces AND /v1/logs<br>
+            • Backend shows traces in "Traces" section and logs in "Logs" section<br>
+            • Correlated logs include trace/span IDs for linking<br><br>
+            
+            <strong>📊 Backend Verification:</strong><br>
+            • <strong>SigNoz:</strong> Check both "Traces" and "Logs" tabs - data should be separated<br>
+            • <strong>Grafana:</strong> Check Tempo (traces) and Loki (logs) data sources<br>
+            • <strong>Correlation:</strong> Click trace → see related logs, click log → see parent trace
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the enhanced PepperLog v2.0.0
+        import { PepperLog } from './dist/browser-enhanced.js';
+        import { LogLevel } from './dist/logging/types.js';
+        
+        let pepperLog = null;
+        let isInitialized = false;
+
+        // Initialize enhanced PepperLog
+        async function initializePepperLog() {
+            if (isInitialized) return pepperLog;
+
+            log('🔄 Initializing PepperLog v2.0.0 with enhanced logging...', 'info');
+            
+            pepperLog = new PepperLog({
+                serviceName: 'browser-enhanced-test',
+                backend: 'signoz', // Change to 'grafana' if using Grafana
+                config: {
+                    endpoint: 'http://localhost:4318/v1/traces',        // Traces endpoint
+                    logsEndpoint: 'http://localhost:4318/v1/logs',      // Logs endpoint (NEW!)
+                    batchConfig: {
+                        maxExportBatchSize: 20,   // Smaller batch for faster testing
+                        exportTimeoutMillis: 2000, // Faster export for testing
+                        scheduledDelayMillis: 500,
+                    }
+                },
+                environment: 'browser-test',
+                features: {
+                    tracing: true,
+                    metrics: true,
+                    logging: true,    // Enable structured logging
+                    autoInstrumentation: true
+                },
+                // Enhanced logging configuration
+                logging: {
+                    enabled: true,
+                    level: LogLevel.DEBUG,
+                    enableCorrelation: true,    // Auto-correlate with traces
+                    consoleOutput: true,
+                    localStorageKey: 'pepper-logs-v2',
+                    maxLocalLogs: 500
+                },
+                globalAttributes: {
+                    'app.version': '2.0.0',
+                    'test.page': 'enhanced-browser-test',
+                    'browser.type': navigator.userAgent.includes('Chrome') ? 'chrome' : 'other'
+                }
+            });
+
+            try {
+                await pepperLog.initialize();
+                log('✅ PepperLog v2.0.0 initialized successfully with enhanced logging!', 'success');
+                
+                const framework = pepperLog.getDetectedFramework();
+                log(`🔍 Framework detected: ${framework?.name || 'unknown'} (${framework?.version || 'unknown version'})`, 'info');
+                
+                log(`🎯 Tracing enabled: ${pepperLog.isTracingEnabled()}`, 'info');
+                log(`📝 Logging enabled: ${pepperLog.isLoggingEnabled()}`, 'info');
+                
+                isInitialized = true;
+                return pepperLog;
+            } catch (error) {
+                log(`❌ Failed to initialize PepperLog: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        // Test basic structured logging
+        window.testBasicLogging = async function() {
+            try {
+                const pepper = await initializePepperLog();
+                log('📝 Testing structured logging - these should appear in "Logs" section!', 'info');
+
+                // Test different log levels
+                pepper.debug('Debug message for testing', { 
+                    'log.category': 'testing',
+                    'test.type': 'debug_level',
+                    'timestamp': new Date().toISOString()
+                });
+
+                pepper.info('User action performed', { 
+                    'user.id': '12345',
+                    'action.type': 'button_click',
+                    'action.target': 'basic_logging_test'
+                });
+
+                pepper.warn('Performance warning detected', { 
+                    'performance.metric': 'response_time',
+                    'performance.value': 1250,
+                    'performance.threshold': 1000
+                });
+
+                try {
+                    throw new Error('Simulated error for logging test');
+                } catch (error) {
+                    pepper.error('Test error occurred', error, { 
+                        'error.context': 'testing',
+                        'error.severity': 'low',
+                        'recovery.action': 'ignore'
+                    });
+                }
+
+                pepper.fatal('Critical test scenario', new Error('System overload simulation'), {
+                    'system.component': 'memory',
+                    'system.usage': '95%',
+                    'system.action': 'cleanup'
+                });
+
+                log('✅ Basic logging tests completed - check Network tab for POST /v1/logs!', 'success');
+
+            } catch (error) {
+                log(`❌ Basic logging test failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Test tracing functionality  
+        window.testTracing = async function() {
+            try {
+                const pepper = await initializePepperLog();
+                log('🎯 Testing tracing - these should appear in "Traces" section!', 'info');
+
+                // Manual span creation
+                const span = pepper.createSpan('manual-test-span', {
+                    'span.type': 'manual',
+                    'test.category': 'tracing'
+                });
+                
+                span.addEvent('Test event added', { 'event.type': 'milestone' });
+                await new Promise(resolve => setTimeout(resolve, 150));
+                span.setAttributes({ 'operation.result': 'success', 'duration.expected': '~150ms' });
+                span.end();
+
+                // Traced function
+                await pepper.traceFunction('traced-operation', async () => {
+                    log('Executing traced operation...', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    return { result: 'success', duration: 200 };
+                }, {
+                    'operation.type': 'async',
+                    'operation.priority': 'normal'
+                });
+
+                log('✅ Tracing tests completed - check Network tab for POST /v1/traces!', 'success');
+
+            } catch (error) {
+                log(`❌ Tracing test failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Test trace-log correlation (KEY NEW FEATURE!)
+        window.testCorrelation = async function() {
+            try {
+                const pepper = await initializePepperLog();
+                log('🔗 Testing trace-log correlation - the magic of v2.0.0!', 'info');
+
+                await pepper.traceFunction('correlated-business-process', async () => {
+                    // These logs should automatically have trace/span IDs
+                    pepper.info('Business process started', { 
+                        'process.name': 'user_onboarding',
+                        'process.step': 1
+                    });
+
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    pepper.info('Validation completed', { 
+                        'process.step': 2,
+                        'validation.result': 'passed',
+                        'validation.checks': 5
+                    });
+
+                    // Nested traced function with correlated logs
+                    await pepper.traceFunction('database-operation', async () => {
+                        pepper.debug('Database connection established', {
+                            'db.type': 'postgresql',
+                            'db.host': 'localhost',
+                            'db.pool.active': 5
+                        });
+                        
+                        await new Promise(resolve => setTimeout(resolve, 80));
+                        
+                        pepper.info('Database query executed', {
+                            'db.query': 'SELECT * FROM users',
+                            'db.rows_returned': 25,
+                            'db.duration_ms': 78
+                        });
+
+                        return { users: 25 };
+                    }, { 'db.operation': 'user_lookup' });
+
+                    pepper.info('Business process completed successfully', { 
+                        'process.step': 3,
+                        'process.result': 'success',
+                        'process.duration_ms': 180
+                    });
+
+                    return { status: 'completed', users_processed: 25 };
+                }, { 
+                    'business.category': 'onboarding',
+                    'business.priority': 'high'
+                });
+
+                log('✅ Correlation test completed!', 'success');
+                log('📊 Check your backend: logs should have trace/span IDs for correlation!', 'info');
+
+            } catch (error) {
+                log(`❌ Correlation test failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Test error handling
+        window.testErrorHandling = async function() {
+            try {
+                const pepper = await initializePepperLog();
+                log('❌ Testing error handling with correlation...', 'info');
+
+                await pepper.traceFunction('error-prone-operation', async () => {
+                    pepper.info('Starting risky operation', { 'risk.level': 'high' });
+                    
+                    try {
+                        await pepper.traceFunction('failing-subprocess', async () => {
+                            pepper.warn('Operation showing signs of failure', { 'warning.indicator': 'timeout_approaching' });
+                            await new Promise(resolve => setTimeout(resolve, 50));
+                            throw new Error('Simulated subprocess failure');
+                        }, { 'subprocess.type': 'external_api' });
+                    } catch (error) {
+                        pepper.error('Subprocess failed as expected', error, {
+                            'error.handling': 'graceful_degradation',
+                            'fallback.available': true
+                        });
+                        
+                        // Test exception logging
+                        pepper.logException(error, 'Detailed exception logging', {
+                            includeStackTrace: true,
+                            customAttributes: {
+                                'exception.context': 'testing',
+                                'exception.expected': true
+                            }
+                        });
+                    }
+
+                    pepper.info('Operation completed with error handling', { 'result': 'partial_success' });
+                    return { status: 'handled_gracefully' };
+                }, { 'operation.error_handling': 'enabled' });
+
+                log('✅ Error handling test completed - errors should be correlated with traces!', 'success');
+
+            } catch (error) {
+                log(`❌ Error handling test failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Test performance logging
+        window.testPerformance = async function() {
+            try {
+                const pepper = await initializePepperLog();
+                log('⚡ Testing performance logging...', 'info');
+
+                const startTime = Date.now();
+                
+                await pepper.traceFunction('performance-sensitive-operation', async () => {
+                    pepper.info('Performance monitoring started', { 'monitoring.type': 'duration' });
+                    
+                    // Simulate variable performance
+                    const delay = Math.random() * 300 + 100; // 100-400ms
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    
+                    pepper.info('Performance operation completed', { 
+                        'operation.duration_ms': delay,
+                        'performance.category': delay > 250 ? 'slow' : 'fast'
+                    });
+                    
+                    return { duration: delay };
+                }, { 'performance.monitoring': true });
+
+                const totalDuration = Date.now() - startTime;
+                
+                // Log duration with performance context
+                pepper.logDuration('complete-performance-test', totalDuration, {
+                    'performance.baseline_ms': 200,
+                    'performance.result': totalDuration > 200 ? 'slower_than_baseline' : 'faster_than_baseline',
+                    'performance.improvement_needed': totalDuration > 300
+                });
+
+                // Test contextual logging
+                const contextualLogger = pepper.withContext({
+                    'test.session': 'performance_suite',
+                    'test.iteration': Math.floor(Math.random() * 100)
+                });
+                
+                contextualLogger.info('Contextual performance log', {
+                    'context.applied': true,
+                    'total_duration_ms': totalDuration
+                });
+
+                log(`✅ Performance test completed in ${totalDuration}ms!`, 'success');
+
+            } catch (error) {
+                log(`❌ Performance test failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Utility functions
+        window.clearLogs = function() {
+            document.getElementById('logs').innerHTML = '';
+            document.getElementById('status').innerHTML = '<div class="info status">Logs cleared - ready for new tests</div>';
+        };
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            
+            // Add to status area
+            const statusEntry = document.createElement('div');
+            statusEntry.className = `status ${type}`;
+            statusEntry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            document.getElementById('status').appendChild(statusEntry);
+            
+            // Add to logs area
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            document.getElementById('logs').appendChild(logEntry);
+            
+            // Auto-scroll logs
+            document.getElementById('logs').scrollTop = document.getElementById('logs').scrollHeight;
+            
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        // Initialize on page load
+        log('📄 PepperLog v2.0.0 Enhanced Test Page loaded', 'info');
+        log('🚀 Ready to test comprehensive observability with traces AND logs!', 'info');
+    </script>
+</body>
+</html>

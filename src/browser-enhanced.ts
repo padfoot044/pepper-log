@@ -1,21 +1,22 @@
-// Real browser PepperLog implementation with CORS-friendly network requests
-// Zero Node.js dependencies, uses native browser APIs for HTTP requests
+// Enhanced PepperLog with comprehensive logging support
+// Real browser implementation with OTLP Traces AND Logs
 
-import { CORSFriendlyOTLPExporter, CORSConfig } from './browser-cors-friendly';
-import { OTLPSpanData, generateTraceId, generateSpanId, toUnixNano, convertAttributes } from './browser-otlp';
+import { BrowserOTLPExporter, OTLPSpanData, generateTraceId, generateSpanId, toUnixNano, convertAttributes } from './browser-otlp';
+import { PepperLogger } from './logging/logger';
+import { LogLevel, LoggingConfig } from './logging/types';
 
 export interface PepperLogConfig {
   backend: 'signoz' | 'datadog' | 'jaeger' | 'newrelic' | 'grafana' | 'azure' | 'aws-xray' | 'custom';
   serviceName: string;
   config?: {
-    endpoint?: string;
+    endpoint?: string;              // Traces endpoint
+    logsEndpoint?: string;          // Logs endpoint (if different)
     headers?: Record<string, string>;
     batchConfig?: {
       maxExportBatchSize?: number;
       exportTimeoutMillis?: number;
       scheduledDelayMillis?: number;
     };
-    corsConfig?: CORSConfig;
   };
   framework?: string;
   features?: {
@@ -26,6 +27,9 @@ export interface PepperLogConfig {
   };
   environment?: string;
   globalAttributes?: Record<string, string | number | boolean>;
+  
+  // New logging configuration
+  logging?: LoggingConfig;
 }
 
 export interface DetectedFramework {
@@ -51,19 +55,20 @@ interface ActiveSpan {
 }
 
 /**
- * Real browser PepperLog implementation with actual network requests
- * Sends traces via HTTP to OTLP endpoints using native browser APIs
+ * Enhanced PepperLog with comprehensive tracing AND logging
+ * Sends traces to /v1/traces and logs to /v1/logs endpoints
  */
 export class PepperLog {
   private config: PepperLogConfig;
   private detectedFramework: DetectedFramework | null = null;
   private isInitialized = false;
   private sessionId: string;
-  private exporter: CORSFriendlyOTLPExporter | null = null;
+  private tracesExporter: BrowserOTLPExporter | null = null;
+  private logger: PepperLogger | null = null;
   private activeSpans: Map<string, ActiveSpan> = new Map();
 
   constructor(config: PepperLogConfig) {
-    console.log('🌶️ PepperLog: Creating real browser instance with network capability');
+    console.log('🌶️ PepperLog: Creating enhanced instance with traces AND logs');
     this.config = {
       features: {
         tracing: true,
@@ -82,6 +87,13 @@ export class PepperLog {
         },
         ...config.config
       },
+      logging: {
+        enabled: true,
+        level: LogLevel.INFO,
+        enableCorrelation: true,
+        consoleOutput: true,
+        ...config.logging
+      },
       ...config
     };
     
@@ -89,8 +101,10 @@ export class PepperLog {
     console.log('🌶️ PepperLog configuration:', {
       serviceName: this.config.serviceName,
       backend: this.config.backend,
-      endpoint: this.config.config?.endpoint,
-      features: this.config.features
+      tracesEndpoint: this.config.config?.endpoint,
+      logsEndpoint: this.config.config?.logsEndpoint,
+      features: this.config.features,
+      logging: this.config.logging
     });
   }
 
@@ -104,24 +118,27 @@ export class PepperLog {
       return;
     }
 
-    console.log('🌶️ PepperLog: Initializing real browser telemetry...');
+    console.log('🌶️ PepperLog: Initializing enhanced telemetry (traces + logs)...');
     
     // Detect framework
     this.detectedFramework = this.detectFramework();
     console.log('🌶️ Detected framework:', this.detectedFramework);
 
-    // Setup OTLP exporter if endpoint is configured
+    // Setup traces exporter
     if (this.config.config?.endpoint && this.config.features?.tracing) {
-      this.setupOTLPExporter();
-    } else {
-      console.warn('🌶️ No OTLP endpoint configured - traces will only be logged to console');
+      this.setupTracesExporter();
+    }
+
+    // Setup logging system
+    if (this.config.features?.logging) {
+      this.setupLogging();
     }
 
     this.isInitialized = true;
-    console.log('🌶️ PepperLog initialized successfully with real network capability');
+    console.log('🌶️ PepperLog initialized successfully with enhanced telemetry');
   }
 
-  private setupOTLPExporter(): void {
+  private setupTracesExporter(): void {
     const endpoint = this.config.config?.endpoint;
     if (!endpoint) return;
 
@@ -132,23 +149,70 @@ export class PepperLog {
       finalEndpoint = endpoint.endsWith('/') ? endpoint + 'v1/traces' : endpoint + '/v1/traces';
     }
 
-    this.exporter = new CORSFriendlyOTLPExporter({
+    this.tracesExporter = new BrowserOTLPExporter({
       endpoint: finalEndpoint,
       serviceName: this.config.serviceName,
       headers: this.config.config?.headers,
       batchTimeout: this.config.config?.batchConfig?.exportTimeoutMillis || 5000,
-      maxBatchSize: this.config.config?.batchConfig?.maxExportBatchSize || 100,
-      corsConfig: this.config.config?.corsConfig || {
-        fallbackToConsole: true,
-        fallbackToLocalStorage: true,
-        fallbackToBeacon: true,
-        corsMode: 'cors',
-        retryAttempts: 2,
-        retryDelay: 1000
-      }
+      maxBatchSize: this.config.config?.batchConfig?.maxExportBatchSize || 100
     });
 
-    console.log('🌶️ OTLP Exporter configured for endpoint:', finalEndpoint);
+    console.log('🌶️ Traces Exporter configured for endpoint:', finalEndpoint);
+  }
+
+  private setupLogging(): void {
+    if (!this.config.logging?.enabled) return;
+
+    // Determine logs endpoint
+    let logsEndpoint: string | undefined;
+    
+    if (this.config.config?.logsEndpoint) {
+      logsEndpoint = this.config.config.logsEndpoint;
+    } else if (this.config.config?.endpoint) {
+      // Auto-configure logs endpoint based on traces endpoint
+      const tracesEndpoint = this.config.config.endpoint;
+      if (tracesEndpoint.includes('/v1/traces')) {
+        logsEndpoint = tracesEndpoint.replace('/v1/traces', '/v1/logs');
+      } else if (tracesEndpoint.includes('4318')) {
+        // OTLP standard ports: 4318 for HTTP, same endpoint with different path
+        logsEndpoint = tracesEndpoint.replace(/\/[^\/]*$/, '') + '/v1/logs';
+      }
+    }
+
+    if (logsEndpoint) {
+      this.logger = new PepperLogger({
+        serviceName: this.config.serviceName,
+        loggingConfig: {
+          endpoint: logsEndpoint,
+          ...this.config.logging
+        },
+        globalResource: {
+          'service.name': this.config.serviceName,
+          'service.version': '1.0.0',
+          'telemetry.sdk.name': '@padfoot044/pepper-log',
+          'telemetry.sdk.version': '2.0.0',
+          'session.id': this.sessionId,
+          'framework.name': this.detectedFramework?.name || 'unknown',
+          'framework.version': this.detectedFramework?.version || 'unknown',
+          ...this.config.globalAttributes
+        }
+      });
+
+      console.log('🌶️ Logger configured for endpoint:', logsEndpoint);
+    } else {
+      console.warn('🌶️ No logs endpoint configured - logs will only appear in console');
+      
+      // Create console-only logger
+      this.logger = new PepperLogger({
+        serviceName: this.config.serviceName,
+        loggingConfig: {
+          enabled: true,
+          level: this.config.logging.level || LogLevel.INFO,
+          consoleOutput: true,
+          enableCorrelation: this.config.logging.enableCorrelation
+        }
+      });
+    }
   }
 
   private detectFramework(): DetectedFramework {
@@ -184,6 +248,10 @@ export class PepperLog {
     return { name: 'unknown', confidence: 0, source: 'browser' };
   }
 
+  // ========================================
+  // TRACING METHODS (existing functionality)
+  // ========================================
+
   createSpan(name: string, attributes?: Record<string, any>): any {
     if (!this.isInitialized) {
       console.warn('🌶️ PepperLog not initialized, span creation skipped');
@@ -213,6 +281,11 @@ export class PepperLog {
 
     this.activeSpans.set(spanId, spanInfo);
 
+    // Set trace context for log correlation
+    if (this.logger) {
+      this.logger.setActiveTrace(traceId, spanId);
+    }
+
     console.log('🌶️ PepperLog Span Started:', {
       name: spanInfo.name,
       traceId: spanInfo.traceId,
@@ -220,7 +293,7 @@ export class PepperLog {
       attributes: spanInfo.attributes
     });
 
-    return {
+    const spanAPI = {
       setAttributes: (attrs: Record<string, any>) => {
         const span = this.activeSpans.get(spanId);
         if (span) {
@@ -282,8 +355,8 @@ export class PepperLog {
             duration: `${duration}ms`
           });
 
-          // Send to OTLP exporter if available
-          if (this.exporter) {
+          // Send to traces exporter if available
+          if (this.tracesExporter) {
             const otlpSpan: OTLPSpanData = {
               traceId: span.traceId,
               spanId: span.spanId,
@@ -300,15 +373,20 @@ export class PepperLog {
               }))
             };
 
-            this.exporter.addSpan(otlpSpan);
-          } else {
-            console.log('🌶️ No exporter configured - span logged to console only');
+            this.tracesExporter.addSpan(otlpSpan);
+          }
+
+          // Clear trace context
+          if (this.logger) {
+            this.logger.clearTraceContext();
           }
 
           this.activeSpans.delete(spanId);
         }
       }
     };
+
+    return spanAPI;
   }
 
   private createNoOpSpan() {
@@ -343,59 +421,84 @@ export class PepperLog {
     }
   }
 
-  info(message: string, attributes?: Record<string, any>): void {
-    if (!this.config.features?.logging) return;
-    
-    console.log('🌶️ PepperLog INFO:', message, attributes);
-    
-    if (this.config.features?.tracing) {
-      const span = this.createSpan(`log.info`, { 
-        'log.message': message, 
-        'log.level': 'info',
-        ...attributes 
-      });
-      span.end();
+  // ========================================
+  // LOGGING METHODS (new functionality)
+  // ========================================
+
+  debug(message: string, attributes?: Record<string, any>): void {
+    if (this.logger) {
+      this.logger.debug(message, attributes);
+    } else if (this.config.logging?.consoleOutput !== false) {
+      console.debug('🌶️ PepperLog DEBUG:', message, attributes);
     }
   }
 
-  error(message: string, error?: Error, attributes?: Record<string, any>): void {
-    if (!this.config.features?.logging) return;
-    
-    console.error('🌶️ PepperLog ERROR:', message, error, attributes);
-    
-    if (this.config.features?.tracing) {
-      const span = this.createSpan(`log.error`, { 
-        'log.message': message, 
-        'log.level': 'error',
-        ...attributes 
-      });
-      if (error) {
-        span.recordException(error);
-      }
-      span.end();
+  info(message: string, attributes?: Record<string, any>): void {
+    if (this.logger) {
+      this.logger.info(message, attributes);
+    } else if (this.config.logging?.consoleOutput !== false) {
+      console.info('🌶️ PepperLog INFO:', message, attributes);
     }
   }
 
   warn(message: string, attributes?: Record<string, any>): void {
-    if (!this.config.features?.logging) return;
-    
-    console.warn('🌶️ PepperLog WARN:', message, attributes);
-    
-    if (this.config.features?.tracing) {
-      const span = this.createSpan(`log.warn`, { 
-        'log.message': message, 
-        'log.level': 'warn',
-        ...attributes 
-      });
-      span.end();
+    if (this.logger) {
+      this.logger.warn(message, attributes);
+    } else if (this.config.logging?.consoleOutput !== false) {
+      console.warn('🌶️ PepperLog WARN:', message, attributes);
     }
   }
 
-  debug(message: string, attributes?: Record<string, any>): void {
-    if (!this.config.features?.logging) return;
-    
-    console.debug('🌶️ PepperLog DEBUG:', message, attributes);
+  error(message: string, error?: Error, attributes?: Record<string, any>): void {
+    if (this.logger) {
+      this.logger.error(message, error, attributes);
+    } else if (this.config.logging?.consoleOutput !== false) {
+      console.error('🌶️ PepperLog ERROR:', message, error, attributes);
+    }
   }
+
+  fatal(message: string, error?: Error, attributes?: Record<string, any>): void {
+    if (this.logger) {
+      this.logger.fatal(message, error, attributes);
+    } else if (this.config.logging?.consoleOutput !== false) {
+      console.error('🌶️ PepperLog FATAL:', message, error, attributes);
+    }
+  }
+
+  // Advanced logging methods
+  logException(error: Error, message?: string, options?: any): void {
+    if (this.logger) {
+      this.logger.logException(error, message, options);
+    } else {
+      this.error(message || `Exception: ${error.message}`, error);
+    }
+  }
+
+  withContext(attributes: Record<string, any>): any {
+    if (this.logger) {
+      return {
+        ...this,
+        logger: this.logger.withContext(attributes)
+      };
+    }
+    return this;
+  }
+
+  logDuration(operation: string, duration: number, attributes?: Record<string, any>): void {
+    if (this.logger) {
+      this.logger.logDuration(operation, duration, attributes);
+    } else {
+      this.info(`Operation completed: ${operation}`, {
+        'operation.name': operation,
+        'operation.duration_ms': duration,
+        ...attributes
+      });
+    }
+  }
+
+  // ========================================
+  // UTILITY METHODS
+  // ========================================
 
   getDetectedFramework(): DetectedFramework | null {
     return this.detectedFramework;
@@ -405,76 +508,33 @@ export class PepperLog {
     return { ...this.config };
   }
 
-  // CORS diagnostic and management methods
-  async testEndpointCORS(): Promise<{ endpoint: string; corsSupported: boolean; error?: string }> {
-    const endpoint = this.config.config?.endpoint;
-    if (!endpoint) {
-      return { endpoint: 'none', corsSupported: false, error: 'No endpoint configured' };
-    }
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'OPTIONS',  // CORS preflight
-        headers: { 'Content-Type': 'application/json' },
-        mode: 'cors'
-      });
-      
-      return { 
-        endpoint, 
-        corsSupported: response.ok,
-        error: response.ok ? undefined : `HTTP ${response.status}`
-      };
-    } catch (error) {
-      return { 
-        endpoint, 
-        corsSupported: false, 
-        error: (error as Error).message 
-      };
-    }
+  getLoggingConfig(): LoggingConfig | undefined {
+    return this.config.logging;
   }
 
-  getStoredTraces(): Array<{ key: string; data: any }> {
-    return this.exporter?.getStoredTraces() || [];
+  getCorrelationInfo(): any {
+    return this.logger?.getCorrelationInfo() || null;
   }
 
-  clearStoredTraces(): void {
-    const traces = this.getStoredTraces();
-    traces.forEach(({ key }) => {
-      localStorage.removeItem(key);
-    });
-    console.log(`🌶️ Cleared ${traces.length} stored traces from localStorage`);
+  isLoggingEnabled(): boolean {
+    return this.config.logging?.enabled || false;
   }
 
-  getCORSStatus(): { 
-    corsFailures: boolean; 
-    fallbacksEnabled: any; 
-    storedTraceCount: number;
-    recommendations: string[];
-  } {
-    const storedTraces = this.getStoredTraces();
-    const corsConfig = this.config.config?.corsConfig;
-    
-    const recommendations = [];
-    if (storedTraces.length > 0) {
-      recommendations.push('CORS issues detected - traces stored in localStorage');
-      recommendations.push('Consider configuring your backend to allow CORS from localhost:4200');
-      recommendations.push('Or use Angular proxy configuration for development');
-    }
-
-    return {
-      corsFailures: storedTraces.length > 0,
-      fallbacksEnabled: corsConfig,
-      storedTraceCount: storedTraces.length,
-      recommendations
-    };
+  isTracingEnabled(): boolean {
+    return this.config.features?.tracing || false;
   }
 
   async shutdown(): Promise<void> {
     console.log('🌶️ PepperLog: Shutting down...');
     
-    if (this.exporter) {
-      await this.exporter.forceFlush();
-      this.exporter.shutdown();
+    if (this.tracesExporter) {
+      await this.tracesExporter.forceFlush();
+      this.tracesExporter.shutdown();
+    }
+    
+    if (this.logger) {
+      await this.logger.flush();
+      this.logger.shutdown();
     }
     
     this.activeSpans.clear();

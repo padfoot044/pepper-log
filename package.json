@@ -1,13 +1,13 @@
 {
   "name": "@padfoot044/pepper-log",
-  "version": "1.0.2",
-  "description": "Universal OpenTelemetry integration for JavaScript/TypeScript frameworks with auto-detection and multiple backend support. Works seamlessly in both browser and Node.js environments.",
+  "version": "2.0.0",
+  "description": "Comprehensive OpenTelemetry observability with structured logging and tracing for JavaScript/TypeScript frameworks. Supports OTLP traces AND logs with auto-correlation.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "browser": "dist/browser-real.js",
+  "browser": "dist/browser-enhanced.js",
   "exports": {
     ".": {
-      "browser": "./dist/browser-real.js",
+      "browser": "./dist/browser-enhanced.js",
       "node": "./dist/index.js",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",

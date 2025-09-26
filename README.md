@@ -1,18 +1,27 @@
-# 🌶️ PepperLog
+# 🌶️ PepperLog v2.0.0
 
-Universal OpenTelemetry integration for JavaScript/TypeScript frameworks with auto-detection and multiple backend support. Works seamlessly in both browser and Node.js environments.
+**Comprehensive OpenTelemetry observability with structured logging and distributed tracing for JavaScript/TypeScript frameworks. Now supports OTLP traces AND logs with automatic correlation.**
 
 [![npm version](https://badge.fury.io/js/@padfoot044%2Fpepper-log.svg)](https://badge.fury.io/js/@padfoot044%2Fpepper-log)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## ✨ What's New in v2.0.0
+
+- 📝 **Structured Logging**: Real logs sent to `/v1/logs` endpoint (not just traces!)
+- 🔗 **Trace-Log Correlation**: Automatic correlation with trace/span IDs
+- 🎯 **Proper Separation**: Traces appear in "Traces", Logs in "Logs" sections
+- ⚡ **Enhanced Performance**: Batched exports for both traces and logs
+- 🌐 **Full OTLP Support**: Complete OpenTelemetry Logs Protocol implementation
+- 🧠 **Smart Configuration**: Auto-detects logs endpoint from traces endpoint
 
 ## ✨ Features
 
 - 🚀 **Universal Compatibility**: Works in both browser and Node.js environments
 - 🎯 **Auto-Detection**: Automatically detects frameworks (Angular, React, Vue, Next.js, Express, etc.)
 - 🔌 **Multiple Backends**: SigNoz, Grafana, Datadog, Jaeger, New Relic, and more
-- 🌐 **Zero Browser Conflicts**: Standalone browser version with no Node.js dependencies
-- � **Complete Telemetry**: Tracing, metrics, and logging in one package
-- �️ **Error-Safe**: Graceful degradation - your app continues even if telemetry fails
+- 🌐 **Zero Browser Conflicts**: Browser-optimized with no Node.js dependencies
+- 📊 **Complete Telemetry**: Tracing, structured logging, and metrics in one package
+- 🛡️ **Error-Safe**: Graceful degradation - your app continues even if telemetry fails
 - 📝 **TypeScript Support**: Full TypeScript definitions included
 
 ## 🚀 Quick Start
@@ -23,25 +32,83 @@ Universal OpenTelemetry integration for JavaScript/TypeScript frameworks with au
 npm install @padfoot044/pepper-log
 ```
 
-### Basic Usage
+### Basic Usage - Enhanced with Logging
 
 ```typescript
-import { PepperLog } from '@padfoot044/pepper-log';
+import { PepperLog, LogLevel } from '@padfoot044/pepper-log';
 
-const telemetry = new PepperLog({
+// v2.0.0: Configure both traces AND logs
+const logger = new PepperLog({
   serviceName: 'my-awesome-app',
-  backend: 'grafana', // or 'signoz', 'datadog', etc.
+  backend: 'signoz', // or 'grafana', 'jaeger', etc.
   config: {
-    endpoint: 'http://localhost:4318/v1/traces'
+    endpoint: 'http://localhost:4318/v1/traces',      // Traces endpoint
+    logsEndpoint: 'http://localhost:4318/v1/logs',    // Logs endpoint (NEW!)
+  },
+  features: {
+    tracing: true,
+    logging: true,    // Enable structured logging
+    metrics: true,
+    autoInstrumentation: true
+  },
+  // Enhanced logging configuration
+  logging: {
+    enabled: true,
+    level: LogLevel.INFO,
+    enableCorrelation: true,    // Auto-correlate logs with traces
+    consoleOutput: true
   }
 });
 
-await telemetry.initialize();
+await logger.initialize();
 
-// Trace a function
-await telemetry.traceFunction('user-action', async () => {
-  console.log('Doing some work...');
-  return 'success';
+// STRUCTURED LOGGING (NEW!) - Goes to "Logs" section
+logger.info('User logged in', { 
+  userId: '12345', 
+  method: 'oauth',
+  duration: 150 
+});
+
+logger.error('Payment failed', new Error('Insufficient funds'), { 
+  userId: '12345', 
+  amount: 99.99,
+  paymentMethod: 'credit_card'
+});
+
+// TRACING (Existing) - Goes to "Traces" section  
+await logger.traceFunction('process-payment', async () => {
+  // These logs are automatically correlated with the trace!
+  logger.info('Payment processing started', { amount: 99.99 });
+  
+  // Your business logic here
+  await processPayment();
+  
+  logger.info('Payment completed successfully');
+  return { success: true };
+}, { 
+  userId: '12345',
+  paymentAmount: 99.99 
+});
+```
+
+### What's Different in v2.0.0?
+
+#### Before (v1.x) - Tracing Only:
+```typescript
+// Everything went to "Traces" section
+logger.info('message');     // Created a span, not a log
+logger.error('error');      // Created a span, not a log
+```
+
+#### Now (v2.0.0) - Proper Separation:
+```typescript
+// Structured Logging → "Logs" section
+logger.info('User action', { userId: '123' });          // Real log entry
+logger.error('Error occurred', error, { context: 'payment' }); // Real log entry
+
+// Tracing → "Traces" section  
+logger.traceFunction('operation', async () => {         // Real span
+  logger.info('Step completed');  // Correlated log with trace ID!
 });
 ```
 
