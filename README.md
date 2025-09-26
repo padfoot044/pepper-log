@@ -1,11 +1,11 @@
-# 🌶️ PepperLog v2.0.0
+# 🌶️ PepperLog v3.0.0
 
 **Comprehensive OpenTelemetry observability with structured logging and distributed tracing for JavaScript/TypeScript frameworks. Now supports OTLP traces AND logs with automatic correlation.**
 
 [![npm version](https://badge.fury.io/js/@padfoot044%2Fpepper-log.svg)](https://badge.fury.io/js/@padfoot044%2Fpepper-log)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## ✨ What's New in v2.0.0
+## ✨ What's New in v3.0.0
 
 - 📝 **Structured Logging**: Real logs sent to `/v1/logs` endpoint (not just traces!)
 - 🔗 **Trace-Log Correlation**: Automatic correlation with trace/span IDs
@@ -37,7 +37,7 @@ npm install @padfoot044/pepper-log
 ```typescript
 import { PepperLog, LogLevel } from '@padfoot044/pepper-log';
 
-// v2.0.0: Configure both traces AND logs
+// v3.0.0: Configure both traces AND logs
 const logger = new PepperLog({
   serviceName: 'my-awesome-app',
   backend: 'signoz', // or 'grafana', 'jaeger', etc.
@@ -91,7 +91,7 @@ await logger.traceFunction('process-payment', async () => {
 });
 ```
 
-### What's Different in v2.0.0?
+### What's Different in v3.0.0?
 
 #### Before (v1.x) - Tracing Only:
 ```typescript
@@ -100,7 +100,7 @@ logger.info('message');     // Created a span, not a log
 logger.error('error');      // Created a span, not a log
 ```
 
-#### Now (v2.0.0) - Proper Separation:
+#### Now (v3.0.0) - Proper Separation:
 ```typescript
 // Structured Logging → "Logs" section
 logger.info('User action', { userId: '123' });          // Real log entry
