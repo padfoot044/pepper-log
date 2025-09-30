@@ -13,16 +13,55 @@ import { BackendFactory } from './backends';
 import { FrameworkIntegrationFactory } from './frameworks';
 import { PepperLogSimple } from './simple';
 
+// Import CORS-friendly browser implementation
+let PepperLogBrowserReal: any = null;
+try {
+  // Dynamic import to avoid Node.js issues
+  const browserReal = require('./browser-real');
+  PepperLogBrowserReal = browserReal.PepperLog;
+} catch (error) {
+  console.debug('🌶️ PepperLog: CORS-friendly browser implementation not available, falling back to simple');
+}
+
 /**
  * Factory function to create the appropriate PepperLog instance
- * Uses simple version for browser, full version for Node.js
+ * Uses CORS-friendly version for browser when available, full version for Node.js
  */
 export function createPepperLog(config: PepperLogConfig): PepperLogInstance {
   const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
   
   if (isBrowser) {
-    console.log('🌶️  PepperLog: Creating browser instance (simplified)');
-    return new PepperLogSimple(config);
+    // Enable CORS-friendly features by default in browser
+    const enhancedConfig = {
+      ...config,
+      features: {
+        tracing: true,
+        logging: true,
+        metrics: true,
+        autoInstrumentation: false,
+        ...config.features
+      },
+      config: {
+        ...config.config,
+        corsConfig: {
+          fallbackToConsole: true,
+          fallbackToLocalStorage: true,
+          fallbackToBeacon: true,
+          corsMode: 'cors' as const,
+          retryAttempts: 2,
+          retryDelay: 1000,
+          ...config.config?.corsConfig
+        }
+      }
+    };
+
+    if (PepperLogBrowserReal) {
+      console.log('🌶️  PepperLog: Creating CORS-friendly browser instance with network support');
+      return new PepperLogBrowserReal(enhancedConfig);
+    } else {
+      console.log('🌶️  PepperLog: Creating simple browser instance (console only)');
+      return new PepperLogSimple(enhancedConfig);
+    }
   } else {
     console.log('🌶️  PepperLog: Creating Node.js instance (full SDK)');
     return new PepperLogNode(config);
@@ -123,6 +162,52 @@ export class PepperLog implements PepperLogInstance {
   fatal(message: string, error?: Error, attributes?: Record<string, any>): void {
     if ('fatal' in this.instance && typeof this.instance.fatal === 'function') {
       this.instance.fatal(message, error, attributes);
+    }
+  }
+
+  // CORS diagnostic methods (browser only)
+  async testEndpointCORS(): Promise<{ endpoint: string; corsSupported: boolean; error?: string }> {
+    if ('testEndpointCORS' in this.instance && typeof this.instance.testEndpointCORS === 'function') {
+      return this.instance.testEndpointCORS();
+    }
+    // Fallback for non-browser environments
+    const config = this.instance.getConfig();
+    const endpoint = config.config?.endpoint || 'none';
+    return { 
+      endpoint, 
+      corsSupported: false, 
+      error: 'CORS testing only available in browser environment' 
+    };
+  }
+
+  getCORSStatus(): { 
+    corsFailures: boolean; 
+    fallbacksEnabled: any; 
+    storedTraceCount: number;
+    recommendations: string[];
+  } {
+    if ('getCORSStatus' in this.instance && typeof this.instance.getCORSStatus === 'function') {
+      return this.instance.getCORSStatus();
+    }
+    // Fallback for non-browser environments
+    return {
+      corsFailures: false,
+      fallbacksEnabled: null,
+      storedTraceCount: 0,
+      recommendations: ['CORS status only available in browser environment']
+    };
+  }
+
+  getStoredTraces(): Array<{ key: string; data: any }> {
+    if ('getStoredTraces' in this.instance && typeof this.instance.getStoredTraces === 'function') {
+      return this.instance.getStoredTraces();
+    }
+    return [];
+  }
+
+  clearStoredTraces(): void {
+    if ('clearStoredTraces' in this.instance && typeof this.instance.clearStoredTraces === 'function') {
+      this.instance.clearStoredTraces();
     }
   }
 }

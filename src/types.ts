@@ -63,6 +63,22 @@ export interface BackendConfig {
     exportTimeoutMillis?: number;
     scheduledDelayMillis?: number;
   };
+
+  /** CORS configuration for browser environments */
+  corsConfig?: {
+    /** Fall back to console logging if network fails */
+    fallbackToConsole?: boolean;
+    /** Store traces in localStorage if network fails */
+    fallbackToLocalStorage?: boolean;
+    /** Try beacon API as fallback */
+    fallbackToBeacon?: boolean;
+    /** CORS mode for fetch requests */
+    corsMode?: 'cors' | 'no-cors' | 'same-origin';
+    /** Number of retry attempts for failed requests */
+    retryAttempts?: number;
+    /** Delay between retry attempts (ms) */
+    retryDelay?: number;
+  };
 }
 
 export interface DetectedFramework {
@@ -97,6 +113,17 @@ export interface PepperLogInstance {
   error?(message: string, error?: Error, attributes?: Record<string, any>): void;
   debug?(message: string, attributes?: Record<string, any>): void;
   fatal?(message: string, error?: Error, attributes?: Record<string, any>): void;
+  
+  /** CORS diagnostic methods (browser only) */
+  testEndpointCORS?(): Promise<{ endpoint: string; corsSupported: boolean; error?: string }>;
+  getCORSStatus?(): { 
+    corsFailures: boolean; 
+    fallbacksEnabled: any; 
+    storedTraceCount: number;
+    recommendations: string[];
+  };
+  getStoredTraces?(): Array<{ key: string; data: any }>;
+  clearStoredTraces?(): void;
   
   /** Shutdown telemetry */
   shutdown(): Promise<void>;

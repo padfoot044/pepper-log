@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - CORS Global Fix 🛡️
+- **Automatic CORS Handling**: Built-in CORS fallback strategies for all browser environments
+- **Zero Configuration**: CORS handling works out-of-the-box with no framework-side changes required
+- **Multiple Fallback Methods**: Automatic fallback chain (CORS → no-CORS → Beacon API → localStorage → console)
+- **CORS Diagnostics**: New methods `testEndpointCORS()`, `getCORSStatus()`, `getStoredTraces()`, `clearStoredTraces()`
+- **localStorage Backup**: Traces stored locally when network requests fail due to CORS
+- **Console Fallback**: Always logs traces to console as ultimate fallback
+- **Automatic Retry**: Configurable retry attempts with delays for failed requests
+
+### Enhanced
+- **Browser Implementation**: Enhanced browser builds now use CORS-friendly OTLP exporter by default
+- **TypeScript Support**: Added CORS configuration types to `BackendConfig` interface
+- **Documentation**: Comprehensive CORS troubleshooting guide (`CORS_GLOBAL_FIX.md`)
+- **Test Tools**: Added interactive CORS test page and framework setup scripts
+
+### Technical Details
+- Added `CORSFriendlyOTLPExporter` with intelligent fallback strategies
+- Enhanced main `PepperLog` class with CORS diagnostic methods
+- Updated browser entry points to use CORS-friendly implementations
+- Added proper TypeScript definitions for CORS configuration
+- Maintained full backward compatibility
+
+### Configuration
+```typescript
+// CORS configuration (optional - defaults work for most cases)
+const pepperLog = new PepperLog({
+  serviceName: 'my-app',
+  backend: 'grafana',
+  config: {
+    endpoint: 'http://localhost:4318/v1/traces',
+    corsConfig: {
+      fallbackToConsole: true,      // Default: true
+      fallbackToLocalStorage: true, // Default: true  
+      fallbackToBeacon: true,       // Default: true
+      corsMode: 'cors',             // Default: 'cors'
+      retryAttempts: 2,             // Default: 2
+      retryDelay: 1000              // Default: 1000ms
+    }
+  }
+});
+```
+
+### Benefits
+- ✅ **Universal Compatibility**: Works with any frontend framework without configuration
+- ✅ **Never Lose Data**: Multiple fallbacks ensure telemetry is never lost
+- ✅ **Development Friendly**: Console logging provides immediate feedback
+- ✅ **Production Ready**: Graceful handling of network issues and CORS policies
+- ✅ **Diagnostic Tools**: Easy troubleshooting with built-in CORS status methods
+
 ## [3.0.2] - 2025-09-26
 
 ### Fixed
