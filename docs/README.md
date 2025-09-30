@@ -5,6 +5,29 @@
 [![npm version](https://badge.fury.io/js/@padfoot044%2Fpepper-log.svg)](https://badge.fury.io/js/@padfoot044%2Fpepper-log)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## 🛡️ **CORS Issues? Solved Automatically!**
+
+**No more CORS configuration needed!** PepperLog v3.0.2+ includes built-in CORS handling with multiple fallback strategies:
+
+- ✅ **Automatic fallbacks** when CORS fails
+- ✅ **Works with any local backend** (localhost:4318, localhost:3000, etc.)
+- ✅ **No framework configuration** required  
+- ✅ **Traces stored locally** if network fails
+- ✅ **Console logging** always works as fallback
+
+```typescript
+// This just works - no CORS configuration needed!
+const pepperLog = new PepperLog({
+  serviceName: 'my-app',
+  backend: 'grafana',
+  config: {
+    endpoint: 'http://localhost:4318/v1/traces' // CORS handled automatically
+  }
+});
+```
+
+📖 **[Read the Complete CORS Solution Guide →](./CORS_GLOBAL_FIX.md)**
+
 ## ✨ What's New in v3.0.0
 
 - 📝 **Structured Logging**: Real logs sent to `/v1/logs` endpoint (not just traces!)
@@ -89,6 +112,19 @@ await logger.traceFunction('process-payment', async () => {
   userId: '12345',
   paymentAmount: 99.99 
 });
+
+// 🛡️ CORS DIAGNOSTICS (NEW!) - Check if your backend has CORS issues
+const corsStatus = await logger.testEndpointCORS();
+console.log('CORS Test:', corsStatus);
+// Output: { endpoint: "http://localhost:4318/v1/traces", corsSupported: false, error: "CORS error" }
+
+const status = logger.getCORSStatus();
+console.log('CORS Status:', status);
+// Output: { corsFailures: true, storedTraceCount: 5, recommendations: [...] }
+
+// View traces stored locally due to CORS issues
+const storedTraces = logger.getStoredTraces();
+console.log(`Found ${storedTraces.length} traces stored locally`);
 ```
 
 ### What's Different in v3.0.0?

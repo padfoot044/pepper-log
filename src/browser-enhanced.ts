@@ -1,7 +1,8 @@
 // Enhanced PepperLog with comprehensive logging support
-// Real browser implementation with OTLP Traces AND Logs
+// Real browser implementation with OTLP Traces AND Logs + CORS handling
 
 import { BrowserOTLPExporter, OTLPSpanData, generateTraceId, generateSpanId, toUnixNano, convertAttributes } from './browser-otlp';
+import { CORSFriendlyOTLPExporter } from './browser-cors-friendly';
 import { PepperLogger } from './logging/logger';
 import { LogLevel, LoggingConfig } from './logging/types';
 
@@ -16,6 +17,15 @@ export interface PepperLogConfig {
       maxExportBatchSize?: number;
       exportTimeoutMillis?: number;
       scheduledDelayMillis?: number;
+    };
+    // CORS configuration for browser environments
+    corsConfig?: {
+      fallbackToConsole?: boolean;
+      fallbackToLocalStorage?: boolean;
+      fallbackToBeacon?: boolean;
+      corsMode?: 'cors' | 'no-cors' | 'same-origin';
+      retryAttempts?: number;
+      retryDelay?: number;
     };
   };
   framework?: string;
@@ -63,7 +73,7 @@ export class PepperLog {
   private detectedFramework: DetectedFramework | null = null;
   private isInitialized = false;
   private sessionId: string;
-  private tracesExporter: BrowserOTLPExporter | null = null;
+  private tracesExporter: CORSFriendlyOTLPExporter | null = null;
   private logger: PepperLogger | null = null;
   private activeSpans: Map<string, ActiveSpan> = new Map();
 
@@ -149,15 +159,23 @@ export class PepperLog {
       finalEndpoint = endpoint.endsWith('/') ? endpoint + 'v1/traces' : endpoint + '/v1/traces';
     }
 
-    this.tracesExporter = new BrowserOTLPExporter({
+    this.tracesExporter = new CORSFriendlyOTLPExporter({
       endpoint: finalEndpoint,
       serviceName: this.config.serviceName,
       headers: this.config.config?.headers,
       batchTimeout: this.config.config?.batchConfig?.exportTimeoutMillis || 5000,
-      maxBatchSize: this.config.config?.batchConfig?.maxExportBatchSize || 100
+      maxBatchSize: this.config.config?.batchConfig?.maxExportBatchSize || 100,
+      corsConfig: this.config.config?.corsConfig || {
+        fallbackToConsole: true,
+        fallbackToLocalStorage: true,
+        fallbackToBeacon: true,
+        corsMode: 'cors',
+        retryAttempts: 2,
+        retryDelay: 1000
+      }
     });
 
-    console.log('🌶️ Traces Exporter configured for endpoint:', finalEndpoint);
+    console.log('🌶️ CORS-Friendly Traces Exporter configured for endpoint:', finalEndpoint);
   }
 
   private setupLogging(): void {
@@ -522,6 +540,70 @@ export class PepperLog {
 
   isTracingEnabled(): boolean {
     return this.config.features?.tracing || false;
+  }
+
+  // CORS diagnostic methods
+  async testEndpointCORS(): Promise<{ endpoint: string; corsSupported: boolean; error?: string }> {
+    const endpoint = this.config.config?.endpoint;
+    if (!endpoint) {
+      return { endpoint: 'none', corsSupported: false, error: 'No endpoint configured' };
+    }
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'OPTIONS',  // CORS preflight
+        headers: { 'Content-Type': 'application/json' },
+        mode: 'cors'
+      });
+      
+      return { 
+        endpoint, 
+        corsSupported: response.ok,
+        error: response.ok ? undefined : `HTTP ${response.status}`
+      };
+    } catch (error) {
+      return { 
+        endpoint, 
+        corsSupported: false, 
+        error: (error as Error).message 
+      };
+    }
+  }
+
+  getCORSStatus(): { 
+    corsFailures: boolean; 
+    fallbacksEnabled: any; 
+    storedTraceCount: number;
+    recommendations: string[];
+  } {
+    const storedTraces = this.getStoredTraces();
+    const corsConfig = this.config.config?.corsConfig;
+    
+    const recommendations = [];
+    if (storedTraces.length > 0) {
+      recommendations.push('CORS issues detected - traces stored in localStorage');
+      recommendations.push('Consider configuring your backend to allow CORS from your origin');
+      recommendations.push('Or use a proxy configuration for development');
+    }
+
+    return {
+      corsFailures: storedTraces.length > 0,
+      fallbacksEnabled: corsConfig,
+      storedTraceCount: storedTraces.length,
+      recommendations
+    };
+  }
+
+  getStoredTraces(): Array<{ key: string; data: any }> {
+    return this.tracesExporter?.getStoredTraces() || [];
+  }
+
+  clearStoredTraces(): void {
+    const traces = this.getStoredTraces();
+    traces.forEach(({ key }) => {
+      localStorage.removeItem(key);
+    });
+    console.log(`🌶️ Cleared ${traces.length} stored traces from localStorage`);
   }
 
   async shutdown(): Promise<void> {
